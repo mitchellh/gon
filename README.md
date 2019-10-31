@@ -4,9 +4,10 @@
 
 gon is a simple, no-frills tool for
 [signing and notarizing](https://developer.apple.com/developer-id/)
-your Go binaries for macOS. gon is available both as a Go library that
-can be embedded in other tools as well as a CLI for running manually or in
-automation pipelines.
+your CLI binaries for macOS. gon is available as a CLI that can be run
+manual or in automation pipelines as well as a Go library for embedding in
+projects written in Go. gon can sign and notarize binaries written in any
+language.
 
 Beginning with macOS Catalina (10.15), Apple is
 [requiring all software distributed outside of the Mac App Store to be signed and notarized](https://developer.apple.com/news/?id=10032019a).
