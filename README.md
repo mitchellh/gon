@@ -26,7 +26,7 @@ We'll see.
 
 To install `gon`, download the appropriate release for your platform
 from the [releases page](https://github.com/mitchellh/gon/releases).
-These are all signed and notarized.
+These are all signed and notarized to run out of the box on macOS 10.15+.
 
 You can also compile from source using Go 1.13 or later using standard
 `go build`. Please ensure that Go modules are enabled.
@@ -36,6 +36,10 @@ You can also compile from source using Go 1.13 or later using standard
 `gon` can be configured completely from the command line, via a
 configuration file, or a mix of both. The configuration specifies
 all the settings `gon` will use to sign and package your binaries.
+
+**gon must be run on a macOS machine with XCode 11.0 or later.** Code
+signing, notarization, and packaging all require tools that are only available
+on macOS machines.
 
 ```
 $ gon [flags] [CONFIG]
