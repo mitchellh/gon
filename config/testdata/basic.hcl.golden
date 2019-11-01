@@ -1,0 +1,15 @@
+(*config.Config)({
+ Source: ([]string) (len=1 cap=1) {
+  (string) (len=11) "./terraform"
+ },
+ BundleId: (string) (len=28) "com.mitchellh.test.terraform",
+ Sign: (config.Sign) {
+  ApplicationIdentity: (string) (len=3) "foo"
+ },
+ AppleConnect: (config.AppleConnect) {
+  Username: (string) (len=21) "mitchellh@example.com",
+  Password: (string) (len=5) "hello",
+  Provider: (string) ""
+ },
+ Zip: (*config.Zip)(<nil>)
+})
