@@ -61,6 +61,7 @@ func Sign(ctx context.Context, opts *Options) error {
 	cmd.Args = []string{
 		"codesign",
 		"-s", opts.Identity,
+		"-f",
 		"-v",
 		"--timestamp",
 		"--options", "runtime",
