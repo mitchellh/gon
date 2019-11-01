@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/mitchellh/gon/config"
+	"github.com/mitchellh/gon/package/zip"
 	"github.com/mitchellh/gon/sign"
 )
 
@@ -59,6 +60,15 @@ func realMain() int {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+	}
+
+	// Create a zip
+	err = zip.Zip(context.Background(), &zip.Options{
+		Files:      cfg.Source,
+		OutputPath: cfg.Zip.OutputPath,
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
 	}
 
 	return 0
