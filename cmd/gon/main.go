@@ -52,17 +52,19 @@ func realMain() int {
 	}
 
 	// Perform codesigning
+	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
 	err = sign.Sign(context.Background(), &sign.Options{
 		Files:    cfg.Source,
 		Identity: cfg.Sign.ApplicationIdentity,
-		Output:   os.Stdout,
 		Logger:   logger.Named("sign"),
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error signing files:\n\n%s\n", err))
 	}
+	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
 
 	// Create a zip
+	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
 	err = zip.Zip(context.Background(), &zip.Options{
 		Files:      cfg.Source,
 		OutputPath: cfg.Zip.OutputPath,
@@ -70,6 +72,7 @@ func realMain() int {
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
 	}
+	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 
 	return 0
 }
@@ -89,3 +92,6 @@ http://github.com/mitchellh/gon
 
 Flags:
 `
+
+const iconSign = `✏️`
+const iconPackage = `📦`
