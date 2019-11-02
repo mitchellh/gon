@@ -23,7 +23,9 @@ func main() {
 
 func realMain() int {
 	var logLevel string
+	var logJSON bool
 	flags := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
+	flags.BoolVar(&logJSON, "log-json", false, "Output logs in JSON format for machine readability.")
 	flags.StringVar(&logLevel, "log-level", "", "Log level to output. Defaults to no logging.")
 	flags.Parse(os.Args[1:])
 	args := flags.Args()
@@ -34,13 +36,14 @@ func realMain() int {
 		logOut = os.Stderr
 	}
 	logger := hclog.New(&hclog.LoggerOptions{
-		Level:  hclog.LevelFromString(logLevel),
-		Output: logOut,
+		Level:      hclog.LevelFromString(logLevel),
+		Output:     logOut,
+		JSONFormat: logJSON,
 	})
 
 	// We expect a configuration file
 	if len(args) != 1 {
-		fmt.Fprintf(os.Stderr, color.RedString("❗️ Path to configuration expected.\n\n"))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Path to configuration expected.\n\n"))
 		printHelp(flags)
 		return 1
 	}
@@ -48,7 +51,7 @@ func realMain() int {
 	// Parse the configuration
 	cfg, err := config.ParseFile(args[0])
 	if err != nil {
-		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error loading configuration:\n\n%s\n", err))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error loading configuration:\n\n%s\n", err))
 		return 1
 	}
 
@@ -60,7 +63,7 @@ func realMain() int {
 		Logger:   logger.Named("sign"),
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
 		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
@@ -72,7 +75,7 @@ func realMain() int {
 		OutputPath: cfg.Zip.OutputPath,
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
 		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
@@ -82,14 +85,14 @@ func realMain() int {
 	info, err := notarize.Notarize(context.Background(), &notarize.Options{
 		File:     cfg.Zip.OutputPath,
 		BundleId: cfg.BundleId,
-		Username: cfg.AppleConnect.Username,
-		Password: cfg.AppleConnect.Password,
-		Provider: cfg.AppleConnect.Provider,
+		Username: cfg.AppleId.Username,
+		Password: cfg.AppleId.Password,
+		Provider: cfg.AppleId.Provider,
 		Logger:   logger.Named("notarize"),
 		Status:   &statusHuman{},
 	})
 	if err != nil {
-		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
 		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    UUID: %s\n", info.RequestUUID)
@@ -98,7 +101,7 @@ func realMain() int {
 }
 
 func printHelp(fs *flag.FlagSet) {
-	fmt.Fprintf(os.Stderr, strings.TrimSpace(help)+"\n\n", os.Args[0])
+	fmt.Fprintf(os.Stdout, strings.TrimSpace(help)+"\n\n", os.Args[0])
 	fs.PrintDefaults()
 }
 

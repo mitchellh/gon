@@ -48,7 +48,8 @@ $ gon [flags] [CONFIG]
 ```
 
 When executed, `gon` will sign, package, and notarize configured files
-into requested formats.
+into requested formats. `gon` will exit with a `0` exit code on success
+and any other value on failure.
 
 ### Configuration File
 
@@ -135,3 +136,28 @@ notarization requests have been queued for an hour or more.
 for notarization to complete. If `gon` is interrupted, you can check the
 status of a request yourself using the request UUID that `gon` outputs
 after submission.
+
+### Using within Automation
+
+`gon` is built to support running within automated environments such
+as CI pipelines. In this environment, you should use JSON configuration
+files with `gon` and the `-log-json` flag to get structured logging
+output.
+
+`gon` always outputs human-readable output on stdout (including errors)
+and all log output on stderr. By specifying `-log-json` the log entries
+will be structured with JSON. You can process the stream of JSON using
+a tool such as `jq` or any scripting language to extract critical information
+such as the request UUID, status, and more.
+
+When `gon` is run in an environment with no TTY, the human output will
+not be colored. This makes it friendlier for output logs.
+
+Example:
+
+    $ gon -log-level=info -log-json ./config.hcl
+	...
+
+**Note you must specify _both_ `-log-level` and `-log-json`.** The
+`-log-level` flag enables logging in general. An `info` level is enough
+in automation environments to get all the information you'd want.
