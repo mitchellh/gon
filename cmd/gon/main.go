@@ -82,7 +82,7 @@ func realMain() int {
 
 	// Notarize
 	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Notarizing...\n", iconNotarize)
-	info, err := notarize.Notarize(context.Background(), &notarize.Options{
+	_, err = notarize.Notarize(context.Background(), &notarize.Options{
 		File:     cfg.Zip.OutputPath,
 		BundleId: cfg.BundleId,
 		Username: cfg.AppleId.Username,
