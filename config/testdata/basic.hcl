@@ -1,7 +1,7 @@
 source = ["./terraform"]
 bundle_id = "com.mitchellh.test.terraform"
 
-apple_connect {
+apple_id {
   username = "mitchellh@example.com"
   password = "hello"
 }

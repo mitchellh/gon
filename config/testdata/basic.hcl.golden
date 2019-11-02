@@ -6,7 +6,7 @@
  Sign: (config.Sign) {
   ApplicationIdentity: (string) (len=3) "foo"
  },
- AppleConnect: (config.AppleConnect) {
+ AppleId: (config.AppleId) {
   Username: (string) (len=21) "mitchellh@example.com",
   Password: (string) (len=5) "hello",
   Provider: (string) ""
