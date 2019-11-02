@@ -20,7 +20,9 @@ gon helps you automate the process of notarization.
 
 ## Features
 
-We'll see.
+  * Code sign one or multiple files written in any language
+  * Package signed files into a zip
+  * Notarize packages and wait for the notarization to complete
 
 ## Installation
 
@@ -33,9 +35,9 @@ You can also compile from source using Go 1.13 or later using standard
 
 ## Usage
 
-`gon` can be configured completely from the command line, via a
-configuration file, or a mix of both. The configuration specifies
-all the settings `gon` will use to sign and package your binaries.
+`gon` requires a configuration file that can be specified as a file path
+or passed in via stdin.  The configuration specifies
+all the settings `gon` will use to sign and package your files.
 
 **gon must be run on a macOS machine with XCode 11.0 or later.** Code
 signing, notarization, and packaging all require tools that are only available
@@ -54,9 +56,36 @@ format is [HCL](https://github.com/hashicorp/hcl/tree/hcl2) or JSON.
 Example:
 
 ```hcl
-TODO
+source = ["./terraform"]
+bundle_id = "com.mitchellh.example.terraform"
+
+apple_connect {
+  username = "mitchell@example.com"
+  password = "@env:AC_PASSWORD"
+}
+
+sign {
+  application_identity = "Developer ID Application: Mitchell Hashimoto"
+}
+
+zip {
+  output_path = "./terraform.zip"
+}
 ```
 
 ```json
 TODO
 ```
+
+Supported configurations:
+
+  * `source` (`array<string>`) - A list of files to sign, package, and
+    notarize. If you want to sign multiple files with different identities
+    or into different packages, then you should invoke `gon` with separate
+    configurations.
+
+  * `bundle_id` (`string`) - The [bundle ID](https://cocoacasts.com/what-are-app-ids-and-bundle-identifiers/)
+    for your application. You should choose something unique for your application.
+    You can also [register these with Apple](https://developer.apple.com/account/resources/identifiers/list).
+
+  * `apple_connect`

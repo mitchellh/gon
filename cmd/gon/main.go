@@ -105,9 +105,14 @@ func printHelp(fs *flag.FlagSet) {
 const help = `
 gon signs, notarizes, and packages binaries for macOS.
 
-Usage: %[1]s [flags] [CONFIG]
+Usage: %[1]s [flags] CONFIG
 
-For full help text, see the README in the GitHub repository:
+A configuration file is required to use gon. If a "-" is specified, gon
+will attempt to read the configuration from stdin. Configuration is in HCL
+or JSON format. The JSON format makes it particularly easy to machine-generate
+the configuration and pass it into gon.
+
+For example configurations as well as full help text, see the README on GitHub:
 http://github.com/mitchellh/gon
 
 Flags:
