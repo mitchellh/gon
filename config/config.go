@@ -20,6 +20,10 @@ type Config struct {
 	// that zip files do not support stapling, so the final result will
 	// require an internet connection on first use to validate the notarization.
 	Zip *Zip `hcl:"zip,block"`
+
+	// Dmg, if present, creates a dmg file to package the signed `Source` files
+	// into. Dmg files support stapling so this allows offline usage.
+	Dmg *Dmg `hcl:"dmg,block"`
 }
 
 // AppleId are the authentication settings for Apple systems.
@@ -44,6 +48,16 @@ type Sign struct {
 	// ApplicationIdentity is the ID or name of the certificate to
 	// use for signing binaries. This is used for all binaries in "source".
 	ApplicationIdentity string `hcl:"application_identity"`
+}
+
+// Dmg are the options for a dmg file as output.
+type Dmg struct {
+	// OutputPath is the path where the final dmg will be saved.
+	OutputPath string `hcl:"output_path"`
+
+	// Volume name is the name of the volume that shows up in the title
+	// and sidebar after opening it.
+	VolumeName string `hcl:"volume_name"`
 }
 
 // Zip are the options for a zip file as output.
