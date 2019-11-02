@@ -59,7 +59,7 @@ Example:
 source = ["./terraform"]
 bundle_id = "com.mitchellh.example.terraform"
 
-apple_connect {
+apple_id {
   username = "mitchell@example.com"
   password = "@env:AC_PASSWORD"
 }
@@ -88,4 +88,32 @@ Supported configurations:
     for your application. You should choose something unique for your application.
     You can also [register these with Apple](https://developer.apple.com/account/resources/identifiers/list).
 
-  * `apple_connect`
+  * `apple_id` - Settings related to the Apple ID to use for notarization.
+  
+    * `username` (`string`) - The Apple ID username, typically an email address.
+    
+    * `password` (`string`) - The password for the associated Apple ID. This can be
+      specified directly or using `@keychain:<name>` or `@env:<name>` to avoid
+      putting the plaintext password directly in a configuration file. The `@keychain:<name>`
+      syntax will load the password from the macOS Keychain with the given name.
+      The `@env:<name>` syntax will load the password from the named environmental 
+      variable.
+
+    * `provider` (`string` _optional_) - The App Store Connect provider when using
+      multiple teams within App Store Connect.
+  
+  * `sign` - Settings related to signing files.
+  
+    * `application_identity` (`string`) - The name or ID of the "Developer ID Application"
+      certificate to use to sign applications. This accepts any valid value for the `-s`
+      flag for the `codesign` binary on macOS. See `man codesign` for detailed
+      documentation on accepted values.
+      
+  * `zip` (_optional_) - Settings related to creating a zip archive as output. A zip archive
+    will only be created if this is specified. Note that zip archives don't support 
+    stapling, meaning that files within the notarized zip archive will require an 
+    internet connection to verify on first use.
+    
+    * `output_path` (`string`) - The path to create the zip archive. If this path
+      already exists, it will be overwritten. All files in `source` will be copied 
+      into the root of the zip archive. 
