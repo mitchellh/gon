@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -67,13 +68,35 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	}
 	status.Submitted(uuid)
 
-	// Begin polling the info and wait for a success
+	// Begin polling the info. The first thing we wait for is for the status
+	// _to even exist_. While we get an error requesting info with an error
+	// code of 1519 (UUID not found), then we are stuck in a queue. Sometimes
+	// this queue is hours long. We just have to wait.
 	result := &Info{RequestUUID: uuid}
 	for {
-		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
-		// found any rate limits to the service so this seems okay.
-		time.Sleep(5 * time.Second)
+		time.Sleep(10 * time.Second)
+		_, err := info(ctx, result.RequestUUID, opts)
+		if err == nil {
+			break
+		}
 
+		// If we got error code 1519 that means that the UUID was not found.
+		// This means we're in a queue.
+		//
+		// There is definitely a more robust way to check for this and
+		// we should do that in the future. For now this works.
+		if strings.Contains(err.Error(), "1519") {
+			continue
+		}
+
+		// A real error, just return that
+		return result, err
+	}
+
+	// Now that the UUID result has been found, we poll more quickly
+	// waiting for the analysis to complete. This usually happens within
+	// minutes.
+	for {
 		// Update the info
 		result, err = info(ctx, result.RequestUUID, opts)
 		if err != nil {
@@ -85,6 +108,10 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		if result.Status == "success" || result.Status == "invalid" {
 			break
 		}
+
+		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
+		// found any rate limits to the service so this seems okay.
+		time.Sleep(5 * time.Second)
 	}
 
 	// If we're in an invalid status then return an error
