@@ -9,4 +9,5 @@ require (
 	github.com/hashicorp/hcl/v2 v2.0.0
 	github.com/sebdah/goldie v1.0.0
 	github.com/stretchr/testify v1.3.0
+	howett.net/plist v0.0.0-20181124034731-591f970eefbb
 )

@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 
 	"github.com/mitchellh/gon/config"
+	"github.com/mitchellh/gon/notarize"
 	"github.com/mitchellh/gon/package/zip"
 	"github.com/mitchellh/gon/sign"
 )
@@ -74,6 +75,21 @@ func realMain() int {
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 
+	// Notarize
+	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Notarizing...\n", iconNotarize)
+	info, err := notarize.Notarize(context.Background(), &notarize.Options{
+		File:     cfg.Zip.OutputPath,
+		BundleId: cfg.BundleId,
+		Username: cfg.AppleConnect.Username,
+		Password: cfg.AppleConnect.Password,
+		Provider: cfg.AppleConnect.Provider,
+		Logger:   logger.Named("notarize"),
+	})
+	if err != nil {
+		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
+	}
+	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    UUID: %s\n", info.RequestUUID)
+
 	return 0
 }
 
@@ -95,3 +111,4 @@ Flags:
 
 const iconSign = `✏️`
 const iconPackage = `📦`
+const iconNotarize = `🍎`
