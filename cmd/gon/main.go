@@ -95,7 +95,7 @@ func realMain() int {
 		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
 		return 1
 	}
-	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    UUID: %s\n", info.RequestUUID)
+	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    File notarized!\n")
 
 	return 0
 }
