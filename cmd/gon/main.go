@@ -61,6 +61,7 @@ func realMain() int {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
 
@@ -72,6 +73,7 @@ func realMain() int {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
+		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 
@@ -87,6 +89,7 @@ func realMain() int {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
+		return 1
 	}
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    UUID: %s\n", info.RequestUUID)
 
