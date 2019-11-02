@@ -3,6 +3,7 @@ package notarize
 import (
 	"context"
 	"os/exec"
+	"time"
 
 	"github.com/hashicorp/go-hclog"
 )
@@ -58,8 +59,24 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		return nil, err
 	}
 
-	// Create an info that's holding our UUID
-	info := &Info{RequestUUID: uuid}
+	// Begin polling the info and wait for a success
+	result := &Info{RequestUUID: uuid}
+	for {
+		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
+		// found any rate limits to the service so this seems okay.
+		time.Sleep(5 * time.Second)
 
-	return info, nil
+		// Update the info
+		result, err = info(ctx, result.RequestUUID, opts)
+		if err != nil {
+			return result, err
+		}
+
+		// If we reached a terminal state then exit
+		if result.Status == "success" {
+			break
+		}
+	}
+
+	return result, nil
 }

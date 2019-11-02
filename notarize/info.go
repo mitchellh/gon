@@ -1,7 +1,16 @@
 package notarize
 
 import (
+	"bytes"
+	"context"
+	"fmt"
+	"io"
+	"os/exec"
+	"path/filepath"
 	"time"
+
+	"github.com/hashicorp/go-hclog"
+	"howett.net/plist"
 )
 
 // Info is the information structure for the state of a notarization request.
@@ -38,4 +47,77 @@ type Info struct {
 // --notarization-info
 type rawInfo struct {
 	Info *Info `plist:"notarization-info"`
+
+	// Errors is the list of errors that occurred while uploading
+	Errors []rawError `plist:"product-errors"`
+}
+
+// info requests the information about a notarization and returns
+// the updated information.
+func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
+	logger := opts.Logger
+	if logger == nil {
+		logger = hclog.NewNullLogger()
+	}
+
+	// Build our command
+	var cmd exec.Cmd
+	if opts.BaseCmd != nil {
+		cmd = *opts.BaseCmd
+	}
+
+	// We only set the path if it isn't set. This lets the options set the
+	// path to the codesigning binary that we use.
+	if cmd.Path == "" {
+		path, err := exec.LookPath("xcrun")
+		if err != nil {
+			return nil, err
+		}
+		cmd.Path = path
+	}
+
+	cmd.Args = []string{
+		filepath.Base(cmd.Path),
+		"altool",
+		"--notarization-info",
+		uuid,
+		"-u", opts.Username,
+		"-p", opts.Password,
+		"--output-format", "xml",
+	}
+
+	// We store all output in out for logging and in case there is an error
+	var out, combined bytes.Buffer
+	cmd.Stdout = io.MultiWriter(&out, &combined)
+	cmd.Stderr = &combined
+
+	// Log what we're going to execute
+	logger.Info("requesting notarization info",
+		"uuid", uuid,
+		"command_path", cmd.Path,
+		"command_args", cmd.Args,
+	)
+
+	// Execute
+	err := cmd.Run()
+
+	// Log the result
+	logger.Info("notarization info command finished",
+		"output", out.String(),
+		"err", err,
+	)
+
+	// Now we check the error for actually running the process
+	if err != nil {
+		return nil, err
+	}
+
+	// Decode the information output
+	var result rawInfo
+	if _, err := plist.Unmarshal(out.Bytes(), &result); err != nil {
+		return nil, fmt.Errorf("failed to decode notarization info: %w", err)
+	}
+
+	logger.Info("notarization info", "uuid", uuid, "info", result.Info)
+	return result.Info, nil
 }
