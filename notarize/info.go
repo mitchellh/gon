@@ -43,9 +43,9 @@ type Info struct {
 	StatusMessage string `plist:"Status Message"`
 }
 
-// rawInfo is the structure of the plist emitted directly from
+// infoResult is the structure of the plist emitted directly from
 // --notarization-info
-type rawInfo struct {
+type infoResult struct {
 	Info *Info `plist:"notarization-info"`
 
 	// Errors is the list of errors that occurred while uploading
@@ -107,15 +107,23 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 		"err", err,
 	)
 
-	// Now we check the error for actually running the process
-	if err != nil {
-		return nil, err
+	// If we have any output, try to decode that since even in the case of
+	// an error it will output some information.
+	var result infoResult
+	if out.Len() > 0 {
+		if _, perr := plist.Unmarshal(out.Bytes(), &result); perr != nil {
+			return nil, fmt.Errorf("failed to decode notarization submission output: %w", perr)
+		}
 	}
 
-	// Decode the information output
-	var result rawInfo
-	if _, err := plist.Unmarshal(out.Bytes(), &result); err != nil {
-		return nil, fmt.Errorf("failed to decode notarization info: %w", err)
+	// If there are errors in the result, then show that error
+	if len(result.Errors) > 0 {
+		return nil, errorList(result.Errors)
+	}
+
+	// Now we check the error for actually running the process
+	if err != nil {
+		return nil, fmt.Errorf("error checking on notarization status:\n\n%s", combined.String())
 	}
 
 	logger.Info("notarization info", "uuid", uuid, "info", result.Info)
