@@ -77,10 +77,14 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 		}
 	}
 
+	// If there are errors in the result, then show that error
+	if len(result.Errors) > 0 {
+		return "", errorList(result.Errors)
+	}
+
 	// Now we check the error for actually running the process
 	if err != nil {
-		// TODO: use errors in result
-		return "", err
+		return "", fmt.Errorf("error submitting for notarization:\n\n%s", combined.String())
 	}
 
 	// We should have a request UUID set at this point since we checked for errors
