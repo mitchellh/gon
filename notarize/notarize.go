@@ -2,6 +2,7 @@ package notarize
 
 import (
 	"context"
+	"fmt"
 	"os/exec"
 	"time"
 
@@ -81,10 +82,16 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		status.Status(*result)
 
 		// If we reached a terminal state then exit
-		if result.Status == "success" {
+		if result.Status == "success" || result.Status == "invalid" {
 			break
 		}
 	}
 
-	return result, nil
+	// If we're in an invalid status then return an error
+	err = nil
+	if result.Status == "invalid" {
+		err = fmt.Errorf("package is invalid. To learn more download the logs at the URL: %s", result.LogFileURL)
+	}
+
+	return result, err
 }
