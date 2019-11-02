@@ -53,11 +53,18 @@ type Options struct {
 // If error is nil, then Info is guaranteed to be non-nil.
 // If error is not nil, notarization failed and Info _may_ be non-nil.
 func Notarize(ctx context.Context, opts *Options) (*Info, error) {
+	status := opts.Status
+	if status == nil {
+		status = noopStatus{}
+	}
+
 	// First perform the upload
+	status.Submitting()
 	uuid, err := upload(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
+	status.Submitted(uuid)
 
 	// Begin polling the info and wait for a success
 	result := &Info{RequestUUID: uuid}
@@ -71,6 +78,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		if err != nil {
 			return result, err
 		}
+		status.Status(*result)
 
 		// If we reached a terminal state then exit
 		if result.Status == "success" {

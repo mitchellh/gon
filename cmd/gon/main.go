@@ -86,6 +86,7 @@ func realMain() int {
 		Password: cfg.AppleConnect.Password,
 		Provider: cfg.AppleConnect.Provider,
 		Logger:   logger.Named("notarize"),
+		Status:   &statusHuman{},
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, color.RedString("❗️ Error notarizing:\n\n%s\n", err))

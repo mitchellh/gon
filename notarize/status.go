@@ -16,5 +16,15 @@ type Status interface {
 	// The info argument contains additional information about the status.
 	// Note that some fields in the info argument may not be populated, please
 	// refer to the docs.
-	Status(status string)
+	Status(Info)
 }
+
+// noopStatus implements Status and does nothing.
+type noopStatus struct{}
+
+func (noopStatus) Submitting()      {}
+func (noopStatus) Submitted(string) {}
+func (noopStatus) Status(Info)      {}
+
+// Assert that we always implement it
+var _ Status = noopStatus{}
