@@ -4,9 +4,10 @@ import (
 	"bytes"
 	"context"
 	"os/exec"
-	"path/filepath"
 
 	"github.com/hashicorp/go-hclog"
+
+	"github.com/mitchellh/gon/internal/createdmg"
 )
 
 // Options are the options for creating the dmg archive.
@@ -30,36 +31,35 @@ type Options struct {
 	BaseCmd *exec.Cmd
 }
 
-// DMG creates a dmg archive for notarization using the options given.
-func DMG(ctx context.Context, opts *Options) error {
+// Dmg creates a dmg archive for notarization using the options given.
+func Dmg(ctx context.Context, opts *Options) error {
 	logger := opts.Logger
 	if logger == nil {
 		logger = hclog.NewNullLogger()
 	}
 
 	// Build our command
-	var cmd exec.Cmd
+	var cmd *exec.Cmd
 	if opts.BaseCmd != nil {
-		cmd = *opts.BaseCmd
+		cmdCopy := *opts.BaseCmd
+		cmd = &cmdCopy
 	}
 
-	// We only set the path if it isn't set. This lets the options set the
-	// path to the codesigning binary that we use.
-	if cmd.Path == "" {
-		path, err := exec.LookPath("ditto")
+	// If the options didn't set a command, we do so from our vendored create-dmg
+	if cmd == nil {
+		var err error
+		cmd, err = createdmg.Cmd(ctx)
 		if err != nil {
 			return err
 		}
-		cmd.Path = path
+		defer createdmg.Close(cmd)
 	}
 
 	cmd.Args = []string{
-		filepath.Base(cmd.Path),
-		"-c", // create an archive
-		"-k", // create a PKZip archive, not CPIO
+		"--volname", opts.VolumeName,
+		opts.OutputPath,
+		opts.Root,
 	}
-	cmd.Args = append(cmd.Args, opts.Files...)
-	cmd.Args = append(cmd.Args, opts.OutputPath)
 
 	// We store all output in out for logging and in case there is an error
 	var out bytes.Buffer
@@ -67,7 +67,7 @@ func DMG(ctx context.Context, opts *Options) error {
 	cmd.Stderr = cmd.Stdout
 
 	// Log what we're going to execute
-	logger.Info("executing ditto for zip archive creation",
+	logger.Info("executing create-dmg for dmg creation",
 		"output_path", opts.OutputPath,
 		"command_path", cmd.Path,
 		"command_args", cmd.Args,
@@ -75,10 +75,10 @@ func DMG(ctx context.Context, opts *Options) error {
 
 	// Execute
 	if err := cmd.Run(); err != nil {
-		logger.Error("error creating zip archive", "err", err, "output", out.String())
+		logger.Error("error creating dmg", "err", err, "output", out.String())
 		return err
 	}
 
-	logger.Info("zip archive creation complete", "output", out.String())
+	logger.Info("dmg creation complete", "output", out.String())
 	return nil
 }
