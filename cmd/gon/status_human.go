@@ -18,7 +18,7 @@ func (s *statusHuman) Submitting() {
 
 func (s *statusHuman) Submitted(uuid string) {
 	color.New().Fprintf(os.Stdout, "    Submitted. Request UUID: %s\n", uuid)
-	color.New().Fprintf(os.Stdout, "    Waiting for results from Apple\n", uuid)
+	color.New().Fprintf(os.Stdout, "    Waiting for results from Apple\n")
 }
 
 func (s *statusHuman) Status(info notarize.Info) {
