@@ -1,3 +1,4 @@
+// Package notarize notarizes packages with Apple.
 package notarize
 
 import (

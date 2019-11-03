@@ -1,3 +1,4 @@
+// Package sign codesigns files.
 package sign
 
 import (

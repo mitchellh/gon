@@ -1,3 +1,6 @@
+// Package dmg creates a "dmg" disk image. This package is purposely
+// skewed towards the features required for notarization with gon and
+// isn't meant to be a general purpose dmg creation library.
 package dmg
 
 import (
