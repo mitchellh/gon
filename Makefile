@@ -15,6 +15,11 @@ clean:
 	rm -rf dist/
 .PHONY: clean
 
+# Update the TOC in the README.
+readme/toc:
+	doctoc --notitle README.md
+.PHONY: readme/toc
+
 vendor: vendor/create-dmg
 
 vendor/create-dmg:

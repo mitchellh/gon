@@ -16,6 +16,22 @@ be run even from the command-line. The
 [workarounds are painful for users](https://github.com/hashicorp/terraform/issues/23033#issuecomment-542302933).
 gon helps you automate the process of notarization.
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+
+- [Features](#features)
+- [Example](#example)
+- [Installation](#installation)
+- [Usage](#usage)
+  - [Configuration File](#configuration-file)
+  - [Processing Time](#processing-time)
+  - [Using within Automation](#using-within-automation)
+- [Roadmap](#roadmap)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+
 ## Features
 
   * Code sign one or multiple files written in any language
@@ -24,6 +40,8 @@ gon helps you automate the process of notarization.
   * Concurrent notarization for multiple output formats
   * Stapling notarization tickets to supported formats (dmg) so that
     Gatekeeper validation works offline.
+
+See [roadmap](#roadmap) for features that we want to support but don't yet.
 
 ## Example
 
@@ -202,3 +220,14 @@ Example:
 **Note you must specify _both_ `-log-level` and `-log-json`.** The
 `-log-level` flag enables logging in general. An `info` level is enough
 in automation environments to get all the information you'd want.
+
+## Roadmap
+
+These are some things I'd love to see but aren't currently implemented.
+
+  * Expose more DMG customization so you can set backgrounds, icons, etc.
+    - The underlying script we use already supports this.
+  * Support adding additional files to the zip, dmg packages
+  * Support the creation of '.app' bundles for CLI applications
+  * Support entitlements for codesigning
+
