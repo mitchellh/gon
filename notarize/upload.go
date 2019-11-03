@@ -79,7 +79,7 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 
 	// If there are errors in the result, then show that error
 	if len(result.Errors) > 0 {
-		return "", errorList(result.Errors)
+		return "", result.Errors
 	}
 
 	// Now we check the error for actually running the process
@@ -108,5 +108,5 @@ type uploadResult struct {
 	} `plist:"notarization-upload"`
 
 	// Errors is the list of errors that occurred while uploading
-	Errors []rawError `plist:"product-errors"`
+	Errors Errors `plist:"product-errors"`
 }

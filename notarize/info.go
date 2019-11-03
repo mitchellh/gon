@@ -49,7 +49,7 @@ type infoResult struct {
 	Info *Info `plist:"notarization-info"`
 
 	// Errors is the list of errors that occurred while uploading
-	Errors []rawError `plist:"product-errors"`
+	Errors Errors `plist:"product-errors"`
 }
 
 // info requests the information about a notarization and returns
@@ -118,7 +118,7 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 
 	// If there are errors in the result, then show that error
 	if len(result.Errors) > 0 {
-		return nil, errorList(result.Errors)
+		return nil, result.Errors
 	}
 
 	// Now we check the error for actually running the process
