@@ -55,6 +55,11 @@ type Options struct {
 // If error is nil, then Info is guaranteed to be non-nil.
 // If error is not nil, notarization failed and Info _may_ be non-nil.
 func Notarize(ctx context.Context, opts *Options) (*Info, error) {
+	logger := opts.Logger
+	if logger == nil {
+		logger = hclog.NewNullLogger()
+	}
+
 	status := opts.Status
 	if status == nil {
 		status = noopStatus{}
@@ -97,11 +102,24 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	// waiting for the analysis to complete. This usually happens within
 	// minutes.
 	for {
-		// Update the info
-		result, err = info(ctx, result.RequestUUID, opts)
-		if err != nil {
+		// Update the info. It is possible for this to return a nil info
+		// and we dont' ever want to set result to nil so we have a check.
+		newResult, err := info(ctx, result.RequestUUID, opts)
+		if newResult != nil {
+			result = newResult
+		}
+
+		if err == nil {
+			// This code is the network became unavailable error. If this
+			// happens then we just log and retry.
+			if e, ok := err.(Errors); ok && e.ContainsCode(-19000) {
+				logger.Warn("error that network became unavailable, will retry")
+				goto RETRY
+			}
+
 			return result, err
 		}
+
 		status.Status(*result)
 
 		// If we reached a terminal state then exit
@@ -109,6 +127,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 			break
 		}
 
+	RETRY:
 		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
 		// found any rate limits to the service so this seems okay.
 		time.Sleep(5 * time.Second)

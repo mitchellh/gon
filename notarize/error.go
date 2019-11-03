@@ -34,3 +34,14 @@ func (err Errors) Error() string {
 
 	return result.Error()
 }
+
+// ContainsCode returns true if the errors list has an error with the given code.
+func (err Errors) ContainsCode(code int64) bool {
+	for _, e := range err {
+		if e.Code == code {
+			return true
+		}
+	}
+
+	return false
+}
