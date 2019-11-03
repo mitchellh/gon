@@ -224,7 +224,7 @@ in automation environments to get all the information you'd want.
 
 ## Go Library
 
-![Godoc](https://godoc.org/github.com/mitchellh/gon?status.svg)](https://godoc.org/github.com/mitchellh/gon)
+[![Godoc](https://godoc.org/github.com/mitchellh/gon?status.svg)](https://godoc.org/github.com/mitchellh/gon)
 
 We also expose a supported API for signing, packaging, and notarizing
 files using the Go programming language. Please see the linked Go documentation
