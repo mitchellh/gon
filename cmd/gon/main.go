@@ -14,7 +14,6 @@ import (
 	"github.com/hashicorp/go-multierror"
 
 	"github.com/mitchellh/gon/internal/config"
-	"github.com/mitchellh/gon/notarize"
 	"github.com/mitchellh/gon/package/dmg"
 	"github.com/mitchellh/gon/package/zip"
 	"github.com/mitchellh/gon/sign"
@@ -60,7 +59,7 @@ func realMain() int {
 
 	// The files to notarize should be added to this. We'll submit one notarization
 	// request per file here.
-	var tono []string
+	var items []*item
 
 	// Perform codesigning
 	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
@@ -89,7 +88,7 @@ func realMain() int {
 		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 
 		// Queue to notarize
-		tono = append(tono, cfg.Zip.OutputPath)
+		items = append(items, &item{Path: cfg.Zip.OutputPath})
 	}
 
 	// Create a dmg
@@ -123,58 +122,43 @@ func realMain() int {
 		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Dmg created and signed\n")
 
 		// Queue to notarize
-		tono = append(tono, cfg.Dmg.OutputPath)
+		items = append(items, &item{Path: cfg.Dmg.OutputPath, Staple: true})
 	}
 
 	// Notarize
 	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Notarizing...\n", iconNotarize)
-	if len(tono) > 1 {
-		for _, f := range tono {
-			color.New().Fprintf(os.Stdout, "    Path: %s\n", f)
+	if len(items) > 1 {
+		for _, f := range items {
+			color.New().Fprintf(os.Stdout, "    Path: %s\n", f.Path)
 		}
 		color.New().Fprintf(os.Stdout, "    Files will be notarized concurrently to optimize queue wait\n")
 	}
 
 	// Build our prefixes
-	prefixes := statusPrefixList(tono)
+	prefixes := statusPrefixList(items)
 
 	// Start our notarizations
 	var wg sync.WaitGroup
 	var lock sync.Mutex
 	var totalErr error
-	for idx, f := range tono {
+	for idx := range items {
 		wg.Add(1)
-		go func(idx int, f string) {
+		go func(idx int) {
 			defer wg.Done()
 
-			// Get our prefix
-			prefix := prefixes[idx]
-
-			// Start notarization
-			_, err := notarize.Notarize(context.Background(), &notarize.Options{
-				File:     f,
-				BundleId: cfg.BundleId,
-				Username: cfg.AppleId.Username,
-				Password: cfg.AppleId.Password,
-				Provider: cfg.AppleId.Provider,
-				Logger:   logger.Named("notarize"),
-				Status: &statusHuman{
-					Prefix: prefix,
-					Lock:   &lock,
-				},
+			err := items[idx].notarize(context.Background(), &processOptions{
+				Config: cfg,
+				Lock:   &lock,
+				Logger: logger,
+				Prefix: prefixes[idx],
 			})
 
-			// After we're done we want to output information for this
-			// file right away.
-			lock.Lock()
-			defer lock.Unlock()
 			if err != nil {
-				color.New(color.FgRed).Fprintf(os.Stdout, "    %sError notarizing\n", prefix)
+				lock.Lock()
+				defer lock.Unlock()
 				totalErr = multierror.Append(totalErr, err)
-			} else {
-				color.New(color.FgGreen).Fprintf(os.Stdout, "    %sFile notarized!\n", prefix)
 			}
-		}(idx, f)
+		}(idx)
 	}
 
 	// Wait for notarization to happen
@@ -188,8 +172,8 @@ func realMain() int {
 
 	// Success, output all the files that were notarized again to remind the user
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "\nNotarization complete! Notarized files:\n")
-	for _, f := range tono {
-		color.New(color.FgGreen).Fprintf(os.Stdout, "  - %s\n", f)
+	for _, f := range items {
+		color.New(color.FgGreen).Fprintf(os.Stdout, "  - %s\n", f.String())
 	}
 
 	return 0

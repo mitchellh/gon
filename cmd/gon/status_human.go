@@ -47,20 +47,20 @@ func (s *statusHuman) Status(info notarize.Info) {
 	}
 }
 
-// statusPrefixList takes a list of files and returns the prefixes to use
+// statusPrefixList takes a list of items and returns the prefixes to use
 // with status messages for each. The returned slice is guaranteed to be
-// allocated and the same length as files.
-func statusPrefixList(files []string) []string {
+// allocated and the same length as items.
+func statusPrefixList(items []*item) []string {
 	// Special-case: for lists of one, we don't use any prefix at all.
-	if len(files) == 1 {
+	if len(items) == 1 {
 		return []string{""}
 	}
 
 	// Create a list of basenames and also keep track of max length
-	result := make([]string, len(files))
+	result := make([]string, len(items))
 	max := 0
-	for idx, f := range files {
-		result[idx] = filepath.Base(f)
+	for idx, f := range items {
+		result[idx] = filepath.Base(f.Path)
 		if l := len(result[idx]); l > max {
 			max = l
 		}
