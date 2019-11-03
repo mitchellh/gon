@@ -1,7 +1,5 @@
 # gon - CLI and Go Library for macOS Notarization
 
-[![Godoc](https://godoc.org/github.com/mitchellh/gon?status.svg)](https://godoc.org/github.com/mitchellh/gon)
-
 gon is a simple, no-frills tool for
 [signing and notarizing](https://developer.apple.com/developer-id/)
 your CLI binaries for macOS. gon is available as a CLI that can be run
@@ -24,6 +22,8 @@ gon helps you automate the process of notarization.
   * Package signed files into a dmg or zip
   * Notarize packages and wait for the notarization to complete
   * Concurrent notarization for multiple output formats
+  * Stapling notarization tickets to supported formats (dmg) so that
+    Gatekeeper validation works offline.
 
 ## Installation
 
@@ -73,13 +73,35 @@ sign {
   application_identity = "Developer ID Application: Mitchell Hashimoto"
 }
 
+dmg {
+  output_path = "terraform.dmg"
+  volume_name = "Terraform"
+}
+
 zip {
-  output_path = "./terraform.zip"
+  output_path = "terraform.zip"
 }
 ```
 
 ```json
-TODO
+{
+    "source" : ["./terraform"],
+    "bundle_id" : "com.mitchellh.example.terraform",
+    "apple_id": {
+        "username" : "mitchell@example.com",
+        "password":  "@env:AC_PASSWORD"
+    },
+    "sign" :{
+        "application_identity" : "Developer ID Application: Mitchell Hashimoto"
+    },
+    "dmg" :{
+        "output_path":  "terraform.dmg",
+        "volume_name":  "Terraform"
+    },
+    "zip" :{
+        "output_path" : "terraform.zip"
+    }
+}
 ```
 
 Supported configurations:
