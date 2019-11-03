@@ -109,7 +109,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 			result = newResult
 		}
 
-		if err == nil {
+		if err != nil {
 			// This code is the network became unavailable error. If this
 			// happens then we just log and retry.
 			if e, ok := err.(Errors); ok && e.ContainsCode(-19000) {
