@@ -57,6 +57,15 @@ func realMain() int {
 		return 1
 	}
 
+	// If we have no items to sign then its probably an error
+	if len(cfg.Source) == 0 {
+		color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
+		color.New(color.FgRed).Fprintf(os.Stdout,
+			"Your configuration had an empty 'source' value. This must be populated with\n"+
+				"at least one file to sign, package, and notarize.\n")
+		return 1
+	}
+
 	// The files to notarize should be added to this. We'll submit one notarization
 	// request per file here.
 	var items []*item
@@ -123,6 +132,16 @@ func realMain() int {
 
 		// Queue to notarize
 		items = append(items, &item{Path: cfg.Dmg.OutputPath, Staple: true})
+	}
+
+	// If we have no items to notarize then its probably an error in the configuration.
+	if len(items) == 0 {
+		color.New(color.Bold, color.FgYellow).Fprintf(os.Stdout, "\n⚠️  No items to notarize\n")
+		color.New(color.FgYellow).Fprintf(os.Stdout,
+			"You must specify a 'zip' or 'dmg' section in your configuration to enable\n"+
+				"packaging and notarization. Without these sections, gon will only sign your\n"+
+				"input files.\n")
+		return 0
 	}
 
 	// Notarize
