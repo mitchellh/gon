@@ -19,11 +19,29 @@ import (
 	"github.com/mitchellh/gon/sign"
 )
 
+// Set by build process
+var (
+	version string
+)
+
 func main() {
 	os.Exit(realMain())
 }
 
 func realMain() int {
+	// Look for version
+	for _, v := range os.Args[1:] {
+		v = strings.TrimLeft(v, "-")
+		if v == "v" || v == "version" {
+			if version == "" {
+				version = "dev"
+			}
+
+			fmt.Printf("version %s\n", version)
+			return 0
+		}
+	}
+
 	var logLevel string
 	var logJSON bool
 	flags := flag.NewFlagSet(os.Args[0], flag.ExitOnError)
