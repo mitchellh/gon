@@ -27,6 +27,7 @@ gon helps you automate the process of notarization.
   - [Configuration File](#configuration-file)
   - [Processing Time](#processing-time)
   - [Using within Automation](#using-within-automation)
+- [Go Library](#go-library)
 - [Roadmap](#roadmap)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -220,6 +221,19 @@ Example:
 **Note you must specify _both_ `-log-level` and `-log-json`.** The
 `-log-level` flag enables logging in general. An `info` level is enough
 in automation environments to get all the information you'd want.
+
+## Go Library
+
+![Godoc](https://godoc.org/github.com/mitchellh/gon?status.svg)](https://godoc.org/github.com/mitchellh/gon)
+
+We also expose a supported API for signing, packaging, and notarizing
+files using the Go programming language. Please see the linked Go documentation
+for more details.
+
+The libraries exposed are purposely lower level and separate out the sign,
+package, notarization, and stapling steps. This lets you integrate this
+functionality into any tooling easily vs. having an opinionated `gon`-CLI
+experience.
 
 ## Roadmap
 
