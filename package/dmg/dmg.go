@@ -3,7 +3,11 @@ package dmg
 import (
 	"bytes"
 	"context"
+	"fmt"
+	"io/ioutil"
+	"os"
 	"os/exec"
+	"path/filepath"
 
 	"github.com/hashicorp/go-hclog"
 
@@ -12,7 +16,19 @@ import (
 
 // Options are the options for creating the dmg archive.
 type Options struct {
-	// Root is the directory to use as the root of the dmg file.
+	// Files is a list of files to put into the root of the dmg. This is
+	// expected to contain already-signed binaries and so on. This overlaps
+	// fully with Root so if no files are specified here and Root is specified
+	// we can still create a Dmg.
+	//
+	// If both Files and Root are set, we'll add this list of files to the
+	// root directory in the dmg.
+	Files []string
+
+	// Root is the directory to use as the root of the dmg file. This can
+	// optionally be set to specify additional files that you want within
+	// the dmg. If this isn't set, we'll create a root with the files specified
+	// in Files.
 	Root string
 
 	// OutputPath is the path where the dmg file will be written. The directory
@@ -55,10 +71,39 @@ func Dmg(ctx context.Context, opts *Options) error {
 		defer createdmg.Close(cmd)
 	}
 
-	cmd.Args = []string{
+	// Set our basic settings
+	args := []string{
+		filepath.Base(cmd.Path), // argv[0]
 		"--volname", opts.VolumeName,
-		opts.OutputPath,
-		opts.Root,
+	}
+
+	// Inject our files
+	for _, f := range opts.Files {
+		args = append(args, "--add-file", filepath.Base(f), f, "0", "0")
+	}
+
+	// Set our root directory. If one wasn't specified, we create an empty
+	// temporary directory to act as our root and we just use the flags to
+	// inject our files.
+	root := opts.Root
+	if root == "" {
+		td, err := ioutil.TempDir("", "gon")
+		if err != nil {
+			return err
+		}
+		defer os.RemoveAll(td)
+		root = td
+	}
+
+	// Add the final arguments and set it on cmd
+	cmd.Args = append(args, opts.OutputPath, root)
+
+	// If our output path exists prior to running, we have to delete that
+	if _, err := os.Stat(opts.OutputPath); err == nil {
+		logger.Info("output path exists, removing", "path", opts.OutputPath)
+		if err := os.Remove(opts.OutputPath); err != nil {
+			return err
+		}
 	}
 
 	// We store all output in out for logging and in case there is an error
@@ -76,7 +121,7 @@ func Dmg(ctx context.Context, opts *Options) error {
 	// Execute
 	if err := cmd.Run(); err != nil {
 		logger.Error("error creating dmg", "err", err, "output", out.String())
-		return err
+		return fmt.Errorf("error creating dmg:\n\n%s", out.String())
 	}
 
 	logger.Info("dmg creation complete", "output", out.String())

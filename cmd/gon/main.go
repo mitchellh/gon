@@ -13,6 +13,7 @@ import (
 
 	"github.com/mitchellh/gon/config"
 	"github.com/mitchellh/gon/notarize"
+	"github.com/mitchellh/gon/package/dmg"
 	"github.com/mitchellh/gon/package/zip"
 	"github.com/mitchellh/gon/sign"
 )
@@ -69,16 +70,49 @@ func realMain() int {
 	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
 
 	// Create a zip
-	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
-	err = zip.Zip(context.Background(), &zip.Options{
-		Files:      cfg.Source,
-		OutputPath: cfg.Zip.OutputPath,
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
-		return 1
+	if cfg.Zip != nil {
+		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
+		err = zip.Zip(context.Background(), &zip.Options{
+			Files:      cfg.Source,
+			OutputPath: cfg.Zip.OutputPath,
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
+			return 1
+		}
+		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 	}
-	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
+
+	// Create a dmg
+	if cfg.Dmg != nil {
+		// First create the dmg itself. This passes in the signed files.
+		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating dmg...\n", iconPackage)
+		color.New().Fprintf(os.Stdout, "    This will open Finder windows momentarily.\n")
+		err = dmg.Dmg(context.Background(), &dmg.Options{
+			Files:      cfg.Source,
+			OutputPath: cfg.Dmg.OutputPath,
+			VolumeName: cfg.Dmg.VolumeName,
+			Logger:     logger.Named("dmg"),
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating dmg:\n\n%s\n", err))
+			return 1
+		}
+		color.New().Fprintf(os.Stdout, "    Dmg file created: %s\n", cfg.Dmg.OutputPath)
+
+		// Next we need to sign the actual DMG as well
+		color.New().Fprintf(os.Stdout, "    Signing dmg...\n")
+		err = sign.Sign(context.Background(), &sign.Options{
+			Files:    []string{cfg.Dmg.OutputPath},
+			Identity: cfg.Sign.ApplicationIdentity,
+			Logger:   logger.Named("dmg"),
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing dmg:\n\n%s\n", err))
+			return 1
+		}
+		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Dmg created and signed\n")
+	}
 
 	// Notarize
 	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Notarizing...\n", iconNotarize)
