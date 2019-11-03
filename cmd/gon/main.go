@@ -13,7 +13,7 @@ import (
 	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-multierror"
 
-	"github.com/mitchellh/gon/config"
+	"github.com/mitchellh/gon/internal/config"
 	"github.com/mitchellh/gon/notarize"
 	"github.com/mitchellh/gon/package/dmg"
 	"github.com/mitchellh/gon/package/zip"
