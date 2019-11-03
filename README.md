@@ -21,8 +21,9 @@ gon helps you automate the process of notarization.
 ## Features
 
   * Code sign one or multiple files written in any language
-  * Package signed files into a zip
+  * Package signed files into a dmg or zip
   * Notarize packages and wait for the notarization to complete
+  * Concurrent notarization for multiple output formats
 
 ## Installation
 
@@ -112,6 +113,18 @@ Supported configurations:
       certificate to use to sign applications. This accepts any valid value for the `-s`
       flag for the `codesign` binary on macOS. See `man codesign` for detailed
       documentation on accepted values.
+
+  * `dmg` (_optional_) - Settings related to creating a disk image (dmg) as output.
+    This will only be created if this is specified. The dmg will also have the
+    notarization ticket stapled so that it can be verified offline and
+    _do not_ require internet to use.
+
+    * `output_path` (`string`) - The path to create the zip archive. If this path
+      already exists, it will be overwritten. All files in `source` will be copied
+      into the root of the zip archive.
+
+    * `volume_name` (`string`) - The name of the mounted dmg that shows up
+      in finder, the mounted file path, etc.
 
   * `zip` (_optional_) - Settings related to creating a zip archive as output. A zip archive
     will only be created if this is specified. Note that zip archives don't support
