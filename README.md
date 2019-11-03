@@ -25,6 +25,12 @@ gon helps you automate the process of notarization.
   * Stapling notarization tickets to supported formats (dmg) so that
     Gatekeeper validation works offline.
 
+## Example
+
+The example below runs `gon` against itself to generate a zip and dmg.
+
+![gon Example](https://user-images.githubusercontent.com/1299/68089803-66961b00-fe21-11e9-820e-cfd7ecae93a2.gif)
+
 ## Installation
 
 To install `gon`, download the appropriate release for your platform
