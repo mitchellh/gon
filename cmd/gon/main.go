@@ -182,7 +182,7 @@ func realMain() int {
 
 	// If totalErr is not nil then we had one or more errors.
 	if totalErr != nil {
-		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error notarizing:\n\n%s\n", err))
+		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error notarizing:\n\n%s\n", totalErr))
 		return 1
 	}
 
