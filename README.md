@@ -178,6 +178,21 @@ zip {
     }
 }
 ```
+Example of "notarization only"
+```hcl
+sources = []
+bundle_id = "com.mitchellh.example.terraform"
+
+notarize {
+  package = "/path/to/terraform.pkg"
+  staple = true
+}
+
+apple_id {
+  username = "mitchell@example.com"
+  password = "@env:AC_PASSWORD"
+}
+```
 
 Supported configurations:
 
@@ -189,6 +204,12 @@ Supported configurations:
   * `bundle_id` (`string`) - The [bundle ID](https://cocoacasts.com/what-are-app-ids-and-bundle-identifiers/)
     for your application. You should choose something unique for your application.
     You can also [register these with Apple](https://developer.apple.com/account/resources/identifiers/list).
+
+  * `notarize` (optional) - Settings for notarizing an already built .pkg or .zip. An alternative to using the `source` 
+
+    * `package` (`string`) - The path to the file to notarize
+
+    * `staple` (`bool`) - Controls if `stapler staple` should run if notarization succeeds
 
   * `apple_id` - Settings related to the Apple ID to use for notarization.
 

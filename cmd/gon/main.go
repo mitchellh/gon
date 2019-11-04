@@ -75,34 +75,42 @@ func realMain() int {
 		return 1
 	}
 
-	// If we have no items to sign then its probably an error
-	if len(cfg.Source) == 0 {
-		color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
-		color.New(color.FgRed).Fprintf(os.Stdout,
-			"Your configuration had an empty 'source' value. This must be populated with\n"+
-				"at least one file to sign, package, and notarize.\n")
-		return 1
-	}
-
 	// The files to notarize should be added to this. We'll submit one notarization
 	// request per file here.
 	var items []*item
 
-	// Perform codesigning
-	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
-	err = sign.Sign(context.Background(), &sign.Options{
-		Files:    cfg.Source,
-		Identity: cfg.Sign.ApplicationIdentity,
-		Logger:   logger.Named("sign"),
-	})
-	if err != nil {
-		fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+	// Notarize is an alternative to "Source", where you specify
+	// a single .pkg or .zip that is ready for notarization and stapling
+	if cfg.Notarize != nil {
+		items = append(items, &item{Path: cfg.Notarize.Package, Staple: cfg.Notarize.Staple})
+	}
+
+	// If we have no items to sign then its probably an error
+	if len(cfg.Source) == 0 && cfg.Notarize == nil {
+		color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
+		color.New(color.FgRed).Fprintf(os.Stdout,
+			"Your configuration had an empty 'source' and empty 'notarize' values. This must be populated with\n"+
+				"at least one file to sign, package, and notarize.\n")
 		return 1
 	}
-	color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
+
+	if len(cfg.Source) > 0 && cfg.Sign != nil {
+		// Perform codesigning
+		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
+		err = sign.Sign(context.Background(), &sign.Options{
+			Files:    cfg.Source,
+			Identity: cfg.Sign.ApplicationIdentity,
+			Logger:   logger.Named("sign"),
+		})
+		if err != nil {
+			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+			return 1
+		}
+		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
+	}
 
 	// Create a zip
-	if cfg.Zip != nil {
+	if len(cfg.Source) > 0 && cfg.Zip != nil {
 		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
 		err = zip.Zip(context.Background(), &zip.Options{
 			Files:      cfg.Source,
@@ -119,7 +127,7 @@ func realMain() int {
 	}
 
 	// Create a dmg
-	if cfg.Dmg != nil {
+	if len(cfg.Source) > 0 && cfg.Dmg != nil && cfg.Sign != nil {
 		// First create the dmg itself. This passes in the signed files.
 		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating dmg...\n", iconPackage)
 		color.New().Fprintf(os.Stdout, "    This will open Finder windows momentarily.\n")
@@ -156,19 +164,19 @@ func realMain() int {
 	if len(items) == 0 {
 		color.New(color.Bold, color.FgYellow).Fprintf(os.Stdout, "\n⚠️  No items to notarize\n")
 		color.New(color.FgYellow).Fprintf(os.Stdout,
-			"You must specify a 'zip' or 'dmg' section in your configuration to enable\n"+
-				"packaging and notarization. Without these sections, gon will only sign your\n"+
-				"input files.\n")
+			"You must specify a 'notarize' section or a 'source' section plus a 'zip' or 'dmg' section "+
+				"in your configuration to enable packaging and notarization. Without these sections, gon\n"+
+				"will only sign your input files in 'source'.\n")
 		return 0
 	}
 
 	// Notarize
 	color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Notarizing...\n", iconNotarize)
 	if len(items) > 1 {
-		for _, f := range items {
-			color.New().Fprintf(os.Stdout, "    Path: %s\n", f.Path)
-		}
 		color.New().Fprintf(os.Stdout, "    Files will be notarized concurrently to optimize queue wait\n")
+	}
+	for _, f := range items {
+		color.New().Fprintf(os.Stdout, "    Path: %s\n", f.Path)
 	}
 
 	// Build our prefixes
