@@ -5,7 +5,6 @@ import (
 	"context"
 	"fmt"
 	"os/exec"
-	"strings"
 	"sync"
 	"time"
 
@@ -102,10 +101,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 
 		// If we got error code 1519 that means that the UUID was not found.
 		// This means we're in a queue.
-		//
-		// There is definitely a more robust way to check for this and
-		// we should do that in the future. For now this works.
-		if strings.Contains(err.Error(), "1519") {
+		if e, ok := err.(Errors); ok && e.ContainsCode(1519) {
 			continue
 		}
 
