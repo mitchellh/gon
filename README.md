@@ -24,9 +24,12 @@ gon helps you automate the process of notarization.
 - [Example](#example)
 - [Installation](#installation)
 - [Usage](#usage)
+  - [Prerequisite: Acquiring a Developer ID Certificate](#prerequisite-acquiring-a-developer-id-certificate)
   - [Configuration File](#configuration-file)
   - [Processing Time](#processing-time)
   - [Using within Automation](#using-within-automation)
+    - [Machine-Readable Output](#machine-readable-output)
+    - [Prompts](#prompts)
 - [Go Library](#go-library)
 - [Roadmap](#roadmap)
 
@@ -77,7 +80,7 @@ When executed, `gon` will sign, package, and notarize configured files
 into requested formats. `gon` will exit with a `0` exit code on success
 and any other value on failure.
 
-## Prerequisite: Acquiring a Developer ID Certificate
+### Prerequisite: Acquiring a Developer ID Certificate
 
 Before using `gon`, you must acquire a Developer ID Certificate. To do
 this, you can either do it via the web or via Xcode locally on a Mac. Using
