@@ -77,6 +77,53 @@ When executed, `gon` will sign, package, and notarize configured files
 into requested formats. `gon` will exit with a `0` exit code on success
 and any other value on failure.
 
+## Prerequisite: Acquiring a Developer ID Certificate
+
+Before using `gon`, you must acquire a Developer ID Certificate. To do
+this, you can either do it via the web or via Xcode locally on a Mac. Using
+Xcode is easier if you already have it installed.
+
+Via the web:
+
+  1. Sign into [developer.apple.com](https://developer.apple.com) with valid
+     Apple ID credentials. You may need to sign up for an Apple developer account.
+
+  2. Navigate to the [certificates](https://developer.apple.com/account/resources/certificates/list)
+     page.
+
+  3. Click the "+" icon, select "Developer ID Application" and follow the steps.
+
+  4. After downloading the certificate, double-click to import it into your
+     keychain. If you're building on a CI machine, every CI machine must have
+     this certificate in their keychain.
+
+Via Xcode:
+
+  1. Open Xcode and go to Xcode => Preferences => Accounts
+
+  2. Click the "+" in the bottom left and add your Apple ID if you haven't already.
+
+  3. Select your Apple account and click "Manage Certificates" in the bottom
+     right corner.
+
+  4. Click "+" in the bottom left corner and click "Developer ID Application".
+
+  5. Right-click the newly created cert in the list, click "export" and
+     export the file as a p12-formatted certificate. _Save this somewhere_.
+     You'll never be able to download it again.
+
+To verify you did this correctly, you can inspect your keychain:
+
+```sh
+$ security find-identity -v
+  1) 97E4A93EAA8BAC7A8FD2383BFA459D2898100E56 "Developer ID Application: Mitchell Hashimoto (GK79KXBF4F)"
+     1 valid identities found
+```
+
+You should see one or more certificates and at least one should be your
+Developer ID Application certificate. The hexadecimal string prefix is the
+value you can use in your configuration file to specify the identity.
+
 ### Configuration File
 
 The configuration file can specify allow/deny lists of licenses for reports,
@@ -204,6 +251,8 @@ as CI pipelines. In this environment, you should use JSON configuration
 files with `gon` and the `-log-json` flag to get structured logging
 output.
 
+#### Machine-Readable Output
+
 `gon` always outputs human-readable output on stdout (including errors)
 and all log output on stderr. By specifying `-log-json` the log entries
 will be structured with JSON. You can process the stream of JSON using
@@ -221,6 +270,17 @@ Example:
 **Note you must specify _both_ `-log-level` and `-log-json`.** The
 `-log-level` flag enables logging in general. An `info` level is enough
 in automation environments to get all the information you'd want.
+
+#### Prompts
+
+On first-run may be prompted multiple times for passwords. If you
+click "Always Allow" then you will not be prompted again. These prompts
+are originating from Apple software that `gon` is subprocessing, and not
+from `gon` itself.
+
+I do not currently know how to script the approvals, so the recommendation
+on build machines is to run `gon` manually once. If anyone finds a way to
+automate this please open an issue, let me know, and I'll update this README.
 
 ## Go Library
 
