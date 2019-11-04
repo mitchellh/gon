@@ -176,7 +176,7 @@ func realMain() int {
 
 	// Start our notarizations
 	var wg sync.WaitGroup
-	var lock sync.Mutex
+	var lock, uploadLock sync.Mutex
 	var totalErr error
 	for idx := range items {
 		wg.Add(1)
@@ -184,10 +184,11 @@ func realMain() int {
 			defer wg.Done()
 
 			err := items[idx].notarize(context.Background(), &processOptions{
-				Config: cfg,
-				Lock:   &lock,
-				Logger: logger,
-				Prefix: prefixes[idx],
+				Config:     cfg,
+				Logger:     logger,
+				Prefix:     prefixes[idx],
+				OutputLock: &lock,
+				UploadLock: &uploadLock,
 			})
 
 			if err != nil {

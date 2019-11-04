@@ -43,23 +43,27 @@ type processOptions struct {
 	// Prefix is the prefix string for output
 	Prefix string
 
-	// Lock protects access to the terminal output.
-	Lock *sync.Mutex
+	// OutputLock protects access to the terminal output.
+	//
+	// UploadLock protects simultaneous notary submission.
+	OutputLock *sync.Mutex
+	UploadLock *sync.Mutex
 }
 
 // notarize notarize & staples the item.
 func (i *item) notarize(ctx context.Context, opts *processOptions) error {
-	lock := opts.Lock
+	lock := opts.OutputLock
 
 	// Start notarization
 	_, err := notarize.Notarize(ctx, &notarize.Options{
-		File:     i.Path,
-		BundleId: opts.Config.BundleId,
-		Username: opts.Config.AppleId.Username,
-		Password: opts.Config.AppleId.Password,
-		Provider: opts.Config.AppleId.Provider,
-		Logger:   opts.Logger.Named("notarize"),
-		Status:   &statusHuman{Prefix: opts.Prefix, Lock: lock},
+		File:       i.Path,
+		BundleId:   opts.Config.BundleId,
+		Username:   opts.Config.AppleId.Username,
+		Password:   opts.Config.AppleId.Password,
+		Provider:   opts.Config.AppleId.Provider,
+		Logger:     opts.Logger.Named("notarize"),
+		Status:     &statusHuman{Prefix: opts.Prefix, Lock: lock},
+		UploadLock: opts.UploadLock,
 	})
 
 	// Save our state

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os/exec"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/hashicorp/go-hclog"
@@ -31,6 +32,12 @@ type Options struct {
 	// and is only used for Apple Connect accounts that support multiple
 	// providers.
 	Provider string
+
+	// UploadLock, if specified, will limit concurrency when uploading
+	// packages. The notary submission process does not allow concurrent
+	// uploads of packages with the same bundle ID, it appears. If you set
+	// this lock, we'll hold the lock while we upload.
+	UploadLock *sync.Mutex
 
 	// Status, if non-nil, will be invoked with status updates throughout
 	// the notarization process.
@@ -66,9 +73,16 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		status = noopStatus{}
 	}
 
+	lock := opts.UploadLock
+	if lock == nil {
+		lock = &sync.Mutex{}
+	}
+
 	// First perform the upload
+	lock.Lock()
 	status.Submitting()
 	uuid, err := upload(ctx, opts)
+	lock.Unlock()
 	if err != nil {
 		return nil, err
 	}
