@@ -3,12 +3,12 @@ package config
 // Config is the configuration structure for gon.
 type Config struct {
 	// Source is the list of binary files to sign.
-	Source []string `hcl:"source"`
+	Source []string `hcl:"source,optional"`
 
 	// BundleId is the bundle ID to use for the package that is created.
 	// This should be in a format such as "com.example.app". The value can
 	// be anything, this is required by Apple.
-	BundleId string `hcl:"bundle_id"`
+	BundleId string `hcl:"bundle_id,optional"`
 
 	// Notarize is a single file (usually a .pkg installer or zip)
 	// that is ready for notarization as-is

@@ -185,26 +185,14 @@ Supported configurations:
   * `source` (`array<string>`) - A list of files to sign, package, and
     notarize. If you want to sign multiple files with different identities
     or into different packages, then you should invoke `gon` with separate
-    configurations.
+    configurations. This is optional if you're using the notarization-only
+	mode with the `notarize` block.
 
   * `bundle_id` (`string`) - The [bundle ID](https://cocoacasts.com/what-are-app-ids-and-bundle-identifiers/)
     for your application. You should choose something unique for your application.
     You can also [register these with Apple](https://developer.apple.com/account/resources/identifiers/list).
-
-  * `notarize` (_optional_) - Settings for notarizing an already built files.
-    This is an alternative to using the `source` option.
-
-    * `path` (`string`) - The path to the file to notarize. This must be
-      one of Apple's supported file types for notarization: dmg, pkg, app, or
-      zip.
-
-    * `bundle_id` (`string`) - The bundle ID to use for this notarization.
-      This is used instead of the top-level `bundle_id` (which controls the
-      value for source-based runs).
-
-    * `staple` (`bool` _optional_) - Controls if `stapler staple` should run
-      if notarization succeeds. This should only be set for filetypes that
-      support it (dmg, pkg, or app).
+    This is optional if you're using the notarization-only
+	mode with the `notarize` block.
 
   * `apple_id` - Settings related to the Apple ID to use for notarization.
 
@@ -248,6 +236,25 @@ Supported configurations:
       already exists, it will be overwritten. All files in `source` will be copied
       into the root of the zip archive.
 
+Notarization-only mode:
+
+  * `notarize` (_optional_) - Settings for notarizing an already built files.
+    This is an alternative to using the `source` option. This option can be
+    repeated to notarize multiple files.
+
+    * `path` (`string`) - The path to the file to notarize. This must be
+      one of Apple's supported file types for notarization: dmg, pkg, app, or
+      zip.
+
+    * `bundle_id` (`string`) - The bundle ID to use for this notarization.
+      This is used instead of the top-level `bundle_id` (which controls the
+      value for source-based runs).
+
+    * `staple` (`bool` _optional_) - Controls if `stapler staple` should run
+      if notarization succeeds. This should only be set for filetypes that
+      support it (dmg, pkg, or app).
+
+
 ### Notarization-Only Configuration
 
 You can configure `gon` to notarize already-signed files. This is useful
@@ -267,9 +274,6 @@ those results as well as those in `notarize` blocks.
 Example in HCL and then the identical configuration in JSON:
 
 ```hcl
-sources = []
-bundle_id = ""
-
 notarize {
   path = "/path/to/terraform.pkg"
   bundle_id = "com.mitchellh.example.terraform"
@@ -284,9 +288,6 @@ apple_id {
 
 ```json
 {
-  "sources": [],
-  "bundle_id": "",
-
   "notarize": [{
     "path": "/path/to/terraform.pkg",
     "bundle_id": "com.mitchellh.example.terraform",

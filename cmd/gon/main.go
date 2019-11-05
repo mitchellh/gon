@@ -81,6 +81,15 @@ func realMain() int {
 
 	// A bunch of validation
 	if len(cfg.Source) > 0 {
+		if cfg.BundleId == "" {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
+				"❗️ `bundle_id` configuration required with `source` set\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"When you set the `source` configuration, you must also specify the\n"+
+					"`bundle_id` that will be used for packaging and notarization.\n")
+			return 1
+		}
+
 		if cfg.Sign == nil {
 			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
 				"❗️ `sign` configuration required with `source` set\n")
