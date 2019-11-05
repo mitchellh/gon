@@ -26,6 +26,7 @@ gon helps you automate the process of notarization.
 - [Usage](#usage)
   - [Prerequisite: Acquiring a Developer ID Certificate](#prerequisite-acquiring-a-developer-id-certificate)
   - [Configuration File](#configuration-file)
+  - [Notarization-Only Configuration](#notarization-only-configuration)
   - [Processing Time](#processing-time)
   - [Using within Automation](#using-within-automation)
     - [Machine-Readable Output](#machine-readable-output)
@@ -253,6 +254,12 @@ You can configure `gon` to notarize already-signed files. This is useful
 if you're integrating `gon` into an existing build pipeline that may already
 support creation of pkg, app, etc. files.
 
+Because notarization requires the payload of packages to also be signed, this
+mode assumes that you have codesigned the payload as well as the package
+itself. `gon` _will not_ sign your package in the `notarize` blocks.
+Please do not confuse this with when `source` is set and `gon` itself
+_creates_ your packages, in which case it will also sign them.
+
 You can use this in addition to specifying `source` as well. In this case,
 we will codesign & package the files specified in `source` and then notarize
 those results as well as those in `notarize` blocks.
@@ -282,13 +289,13 @@ apple_id {
 
   "notarize": [{
     "path": "/path/to/terraform.pkg",
-	"bundle_id": "com.mitchellh.example.terraform",
-	"staple": true
+    "bundle_id": "com.mitchellh.example.terraform",
+    "staple": true
   }],
 
   "apple_id": {
      "username": "mitchell@example.com",
-	 "password": "@env:AC_PASSWORD"
+     "password": "@env:AC_PASSWORD"
   }
 }
 ```
