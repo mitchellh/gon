@@ -79,18 +79,7 @@ func realMain() int {
 	// request per file here.
 	var items []*item
 
-	// Notarize is an alternative to "Source", where you specify
-	// a single .pkg or .zip that is ready for notarization and stapling
-	if len(cfg.Notarize) > 0 {
-		for _, c := range cfg.Notarize {
-			items = append(items, &item{
-				Path:     c.Path,
-				BundleId: c.BundleId,
-				Staple:   c.Staple,
-			})
-		}
-	}
-
+	// A bunch of validation
 	if len(cfg.Source) > 0 {
 		if cfg.Sign == nil {
 			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
@@ -101,6 +90,14 @@ func realMain() int {
 			return 1
 		}
 	} else {
+		if len(cfg.Notarize) == 0 {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"Your configuration had an empty 'source' and empty 'notarize' values. This must be populated with\n"+
+					"at least one file to sign, package, and notarize.\n")
+			return 1
+		}
+
 		if cfg.Zip != nil {
 			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
 				"❗️ `zip` can only be set while `source` is also set\n")
@@ -122,13 +119,16 @@ func realMain() int {
 		}
 	}
 
-	// If we have no items to sign then its probably an error
-	if len(cfg.Source) == 0 && len(cfg.Notarize) == 0 {
-		color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
-		color.New(color.FgRed).Fprintf(os.Stdout,
-			"Your configuration had an empty 'source' and empty 'notarize' values. This must be populated with\n"+
-				"at least one file to sign, package, and notarize.\n")
-		return 1
+	// Notarize is an alternative to "Source", where you specify
+	// a single .pkg or .zip that is ready for notarization and stapling
+	if len(cfg.Notarize) > 0 {
+		for _, c := range cfg.Notarize {
+			items = append(items, &item{
+				Path:     c.Path,
+				BundleId: c.BundleId,
+				Staple:   c.Staple,
+			})
+		}
 	}
 
 	// If we're in source mode, then sign & package as configured
