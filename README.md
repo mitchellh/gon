@@ -178,21 +178,6 @@ zip {
     }
 }
 ```
-Example of "notarization only"
-```hcl
-sources = []
-bundle_id = "com.mitchellh.example.terraform"
-
-notarize {
-  package = "/path/to/terraform.pkg"
-  staple = true
-}
-
-apple_id {
-  username = "mitchell@example.com"
-  password = "@env:AC_PASSWORD"
-}
-```
 
 Supported configurations:
 
@@ -205,11 +190,20 @@ Supported configurations:
     for your application. You should choose something unique for your application.
     You can also [register these with Apple](https://developer.apple.com/account/resources/identifiers/list).
 
-  * `notarize` (optional) - Settings for notarizing an already built .pkg or .zip. An alternative to using the `source` 
+  * `notarize` (_optional_) - Settings for notarizing an already built files.
+    This is an alternative to using the `source` option.
 
-    * `package` (`string`) - The path to the file to notarize
+    * `path` (`string`) - The path to the file to notarize. This must be
+      one of Apple's supported file types for notarization: dmg, pkg, app, or
+      zip.
 
-    * `staple` (`bool`) - Controls if `stapler staple` should run if notarization succeeds
+    * `bundle_id` (`string`) - The bundle ID to use for this notarization.
+      This is used instead of the top-level `bundle_id` (which controls the
+      value for source-based runs).
+
+    * `staple` (`bool` _optional_) - Controls if `stapler staple` should run
+      if notarization succeeds. This should only be set for filetypes that
+      support it (dmg, pkg, or app).
 
   * `apple_id` - Settings related to the Apple ID to use for notarization.
 
@@ -252,6 +246,55 @@ Supported configurations:
     * `output_path` (`string`) - The path to create the zip archive. If this path
       already exists, it will be overwritten. All files in `source` will be copied
       into the root of the zip archive.
+
+### Notarization-Only Configuration
+
+You can configure `gon` to notarize already-signed files. This is useful
+if you're integrating `gon` into an existing build pipeline that may already
+support creation of pkg, app, etc. files.
+
+You can use this in addition to specifying `source` as well. In this case,
+we will codesign & package the files specified in `source` and then notarize
+those results as well as those in `notarize` blocks.
+
+Example in HCL and then the identical configuration in JSON:
+
+```hcl
+sources = []
+bundle_id = ""
+
+notarize {
+  path = "/path/to/terraform.pkg"
+  bundle_id = "com.mitchellh.example.terraform"
+  staple = true
+}
+
+apple_id {
+  username = "mitchell@example.com"
+  password = "@env:AC_PASSWORD"
+}
+```
+
+```json
+{
+  "sources": [],
+  "bundle_id": "",
+
+  "notarize": [{
+    "path": "/path/to/terraform.pkg",
+	"bundle_id": "com.mitchellh.example.terraform",
+	"staple": true
+  }],
+
+  "apple_id": {
+     "username": "mitchell@example.com",
+	 "password": "@env:AC_PASSWORD"
+  }
+}
+```
+
+Note you may specify multiple `notarize` blocks to notarize multipel files
+concurrently.
 
 ### Processing Time
 
