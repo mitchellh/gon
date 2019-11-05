@@ -380,5 +380,3 @@ These are some things I'd love to see but aren't currently implemented.
     - The underlying script we use already supports this.
   * Support adding additional files to the zip, dmg packages
   * Support the creation of '.app' bundles for CLI applications
-  * Support entitlements for codesigning
-
