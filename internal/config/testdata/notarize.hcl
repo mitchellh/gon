@@ -2,8 +2,8 @@ source = []
 bundle_id = "com.example.terraform"
 
 notarize {
-	path = "/path/to/terraform.pkg"
-    bundle_id = "foo.bar"
+  path = "/path/to/terraform.pkg"
+  bundle_id = "foo.bar"
 }
 
 apple_id {

@@ -146,9 +146,10 @@ func realMain() int {
 			// Perform codesigning
 			color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
 			err = sign.Sign(context.Background(), &sign.Options{
-				Files:    cfg.Source,
-				Identity: cfg.Sign.ApplicationIdentity,
-				Logger:   logger.Named("sign"),
+				Files:        cfg.Source,
+				Identity:     cfg.Sign.ApplicationIdentity,
+				Entitlements: cfg.Sign.EntitlementsFile,
+				Logger:       logger.Named("sign"),
 			})
 			if err != nil {
 				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))

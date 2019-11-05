@@ -23,6 +23,9 @@ type Options struct {
 	// be in a variety of forms.
 	Identity string
 
+	// Entitlements is an (optional) path to a plist format .entitlements file
+	Entitlements string
+
 	// Output is an io.Writer where the output of the command will be written.
 	// If this is nil then the output will only be sent to the log (if set)
 	// or in the error result value if signing failed.
@@ -66,6 +69,10 @@ func Sign(ctx context.Context, opts *Options) error {
 		"-v",
 		"--timestamp",
 		"--options", "runtime",
+	}
+
+	if len(opts.Entitlements) > 0 {
+		cmd.Args = append(cmd.Args, "--entitlements", opts.Entitlements)
 	}
 
 	// Append the files that we want to sign
