@@ -3,9 +3,10 @@
   (string) (len=11) "./terraform"
  },
  BundleId: (string) (len=28) "com.mitchellh.test.terraform",
- Sign: (config.Sign) {
+ Notarize: ([]config.Notarize) <nil>,
+ Sign: (*config.Sign)({
   ApplicationIdentity: (string) (len=3) "foo"
- },
+ }),
  AppleId: (config.AppleId) {
   Username: (string) (len=21) "mitchellh@example.com",
   Password: (string) (len=5) "hello",

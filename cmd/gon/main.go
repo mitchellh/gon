@@ -81,12 +81,49 @@ func realMain() int {
 
 	// Notarize is an alternative to "Source", where you specify
 	// a single .pkg or .zip that is ready for notarization and stapling
-	if cfg.Notarize != nil {
-		items = append(items, &item{Path: cfg.Notarize.Package, Staple: cfg.Notarize.Staple})
+	if len(cfg.Notarize) > 0 {
+		for _, c := range cfg.Notarize {
+			items = append(items, &item{
+				Path:     c.Path,
+				BundleId: c.BundleId,
+				Staple:   c.Staple,
+			})
+		}
+	}
+
+	if len(cfg.Source) > 0 {
+		if cfg.Sign == nil {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
+				"❗️ `sign` configuration required with `source` set\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"When you set the `source` configuration, you must also specify the\n"+
+					"`sign` configuration to sign the input files.\n")
+			return 1
+		}
+	} else {
+		if cfg.Zip != nil {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
+				"❗️ `zip` can only be set while `source` is also set\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"Zip packaging is only supported when `source` is specified. This is\n"+
+					"because the `zip` option packages the source files. If there are no\n"+
+					"source files specified, then there is nothing to package.\n")
+			return 1
+		}
+
+		if cfg.Dmg != nil {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout,
+				"❗️ `dmg` can only be set while `source` is also set\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"Dmg packaging is only supported when `source` is specified. This is\n"+
+					"because the `dmg` option packages the source files. If there are no\n"+
+					"source files specified, then there is nothing to package.\n")
+			return 1
+		}
 	}
 
 	// If we have no items to sign then its probably an error
-	if len(cfg.Source) == 0 && cfg.Notarize == nil {
+	if len(cfg.Source) == 0 && len(cfg.Notarize) == 0 {
 		color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No source files specified\n")
 		color.New(color.FgRed).Fprintf(os.Stdout,
 			"Your configuration had an empty 'source' and empty 'notarize' values. This must be populated with\n"+
@@ -94,70 +131,73 @@ func realMain() int {
 		return 1
 	}
 
-	if len(cfg.Source) > 0 && cfg.Sign != nil {
-		// Perform codesigning
-		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
-		err = sign.Sign(context.Background(), &sign.Options{
-			Files:    cfg.Source,
-			Identity: cfg.Sign.ApplicationIdentity,
-			Logger:   logger.Named("sign"),
-		})
-		if err != nil {
-			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
-			return 1
+	// If we're in source mode, then sign & package as configured
+	if len(cfg.Source) > 0 {
+		if cfg.Sign != nil {
+			// Perform codesigning
+			color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Signing files...\n", iconSign)
+			err = sign.Sign(context.Background(), &sign.Options{
+				Files:    cfg.Source,
+				Identity: cfg.Sign.ApplicationIdentity,
+				Logger:   logger.Named("sign"),
+			})
+			if err != nil {
+				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
+				return 1
+			}
+			color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
 		}
-		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Code signing successful\n")
-	}
 
-	// Create a zip
-	if len(cfg.Source) > 0 && cfg.Zip != nil {
-		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
-		err = zip.Zip(context.Background(), &zip.Options{
-			Files:      cfg.Source,
-			OutputPath: cfg.Zip.OutputPath,
-		})
-		if err != nil {
-			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
-			return 1
+		// Create a zip
+		if cfg.Zip != nil {
+			color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating Zip archive...\n", iconPackage)
+			err = zip.Zip(context.Background(), &zip.Options{
+				Files:      cfg.Source,
+				OutputPath: cfg.Zip.OutputPath,
+			})
+			if err != nil {
+				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating zip archive:\n\n%s\n", err))
+				return 1
+			}
+			color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
+
+			// Queue to notarize
+			items = append(items, &item{Path: cfg.Zip.OutputPath})
 		}
-		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Zip archive created with signed files\n")
 
-		// Queue to notarize
-		items = append(items, &item{Path: cfg.Zip.OutputPath})
-	}
+		// Create a dmg
+		if cfg.Dmg != nil && cfg.Sign != nil {
+			// First create the dmg itself. This passes in the signed files.
+			color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating dmg...\n", iconPackage)
+			color.New().Fprintf(os.Stdout, "    This will open Finder windows momentarily.\n")
+			err = dmg.Dmg(context.Background(), &dmg.Options{
+				Files:      cfg.Source,
+				OutputPath: cfg.Dmg.OutputPath,
+				VolumeName: cfg.Dmg.VolumeName,
+				Logger:     logger.Named("dmg"),
+			})
+			if err != nil {
+				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating dmg:\n\n%s\n", err))
+				return 1
+			}
+			color.New().Fprintf(os.Stdout, "    Dmg file created: %s\n", cfg.Dmg.OutputPath)
 
-	// Create a dmg
-	if len(cfg.Source) > 0 && cfg.Dmg != nil && cfg.Sign != nil {
-		// First create the dmg itself. This passes in the signed files.
-		color.New(color.Bold).Fprintf(os.Stdout, "==> %s  Creating dmg...\n", iconPackage)
-		color.New().Fprintf(os.Stdout, "    This will open Finder windows momentarily.\n")
-		err = dmg.Dmg(context.Background(), &dmg.Options{
-			Files:      cfg.Source,
-			OutputPath: cfg.Dmg.OutputPath,
-			VolumeName: cfg.Dmg.VolumeName,
-			Logger:     logger.Named("dmg"),
-		})
-		if err != nil {
-			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error creating dmg:\n\n%s\n", err))
-			return 1
+			// Next we need to sign the actual DMG as well
+			color.New().Fprintf(os.Stdout, "    Signing dmg...\n")
+			err = sign.Sign(context.Background(), &sign.Options{
+				Files:    []string{cfg.Dmg.OutputPath},
+				Identity: cfg.Sign.ApplicationIdentity,
+				Logger:   logger.Named("dmg"),
+			})
+			if err != nil {
+				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing dmg:\n\n%s\n", err))
+				return 1
+			}
+			color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Dmg created and signed\n")
+
+			// Queue to notarize
+			items = append(items, &item{Path: cfg.Dmg.OutputPath, Staple: true})
 		}
-		color.New().Fprintf(os.Stdout, "    Dmg file created: %s\n", cfg.Dmg.OutputPath)
-
-		// Next we need to sign the actual DMG as well
-		color.New().Fprintf(os.Stdout, "    Signing dmg...\n")
-		err = sign.Sign(context.Background(), &sign.Options{
-			Files:    []string{cfg.Dmg.OutputPath},
-			Identity: cfg.Sign.ApplicationIdentity,
-			Logger:   logger.Named("dmg"),
-		})
-		if err != nil {
-			fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing dmg:\n\n%s\n", err))
-			return 1
-		}
-		color.New(color.Bold, color.FgGreen).Fprintf(os.Stdout, "    Dmg created and signed\n")
-
-		// Queue to notarize
-		items = append(items, &item{Path: cfg.Dmg.OutputPath, Staple: true})
 	}
 
 	// If we have no items to notarize then its probably an error in the configuration.

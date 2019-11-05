@@ -18,6 +18,9 @@ type item struct {
 	// Path is the path to the file to notarize.
 	Path string
 
+	// BundleId is the bundle ID to use for this notarization.
+	BundleId string
+
 	// Staple is true if we should perform stapling on this file. Not
 	// all files support stapling so the default depends on the type of file.
 	Staple bool
@@ -54,10 +57,16 @@ type processOptions struct {
 func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	lock := opts.OutputLock
 
+	// The bundle ID defaults to the root one
+	bundleId := i.BundleId
+	if bundleId == "" {
+		bundleId = opts.Config.BundleId
+	}
+
 	// Start notarization
 	_, err := notarize.Notarize(ctx, &notarize.Options{
 		File:       i.Path,
-		BundleId:   opts.Config.BundleId,
+		BundleId:   bundleId,
 		Username:   opts.Config.AppleId.Username,
 		Password:   opts.Config.AppleId.Password,
 		Provider:   opts.Config.AppleId.Provider,
