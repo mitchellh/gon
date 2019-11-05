@@ -10,8 +10,12 @@ type Config struct {
 	// be anything, this is required by Apple.
 	BundleId string `hcl:"bundle_id"`
 
+	// Notarize is a single file (usually a .pkg installer or zip)
+	// that is ready for notarization as-is
+	Notarize []Notarize `hcl:"notarize,block"`
+
 	// Sign are the settings for code-signing the binaries.
-	Sign Sign `hcl:"sign,block"`
+	Sign *Sign `hcl:"sign,block"`
 
 	// AppleId are the credentials to use to talk to Apple.
 	AppleId AppleId `hcl:"apple_id,block"`
@@ -41,6 +45,20 @@ type AppleId struct {
 	// specified if you're using an Apple ID account that has multiple
 	// teams.
 	Provider string `hcl:"provider,optional"`
+}
+
+// NOtarize are the options for notarizing a pre-built file.
+type Notarize struct {
+	// Path is the path to the file to notarize. This can be any supported
+	// filetype (dmg, pkg, app, zip).
+	Path string `hcl:"path"`
+
+	// BundleId is the bundle ID to use for notarizing this package.
+	// If this isn't specified then the root bundle_id is inherited.
+	BundleId string `hcl:"bundle_id"`
+
+	// Staple, if true will staple the notarization ticket to the file.
+	Staple bool `hcl:"staple,optional"`
 }
 
 // Sign are the options for codesigning the binaries.

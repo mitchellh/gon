@@ -1,0 +1,20 @@
+(*config.Config)({
+ Source: ([]string) {
+ },
+ BundleId: (string) (len=21) "com.example.terraform",
+ Notarize: ([]config.Notarize) (len=1 cap=1) {
+  (config.Notarize) {
+   Path: (string) (len=22) "/path/to/terraform.pkg",
+   BundleId: (string) (len=7) "foo.bar",
+   Staple: (bool) false
+  }
+ },
+ Sign: (*config.Sign)(<nil>),
+ AppleId: (config.AppleId) {
+  Username: (string) (len=21) "mitchellh@example.com",
+  Password: (string) (len=5) "hello",
+  Provider: (string) ""
+ },
+ Zip: (*config.Zip)(<nil>),
+ Dmg: (*config.Dmg)(<nil>)
+})
