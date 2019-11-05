@@ -238,7 +238,7 @@ Supported configurations:
 
 Notarization-only mode:
 
-  * `notarize` (_optional_) - Settings for notarizing an already built files.
+  * `notarize` (_optional_) - Settings for notarizing already built files.
     This is an alternative to using the `source` option. This option can be
     repeated to notarize multiple files.
 
