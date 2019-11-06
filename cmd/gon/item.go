@@ -140,7 +140,7 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 				opts.Prefix, len(log.Issues))
 			for idx, issue := range log.Issues {
 				color.New(color.FgRed).Fprintf(os.Stdout,
-					"    %s  Issue #%d (%s) for path %q: %s\n",
+					"    %sIssue #%d (%s) for path %q: %s\n",
 					opts.Prefix, idx+1, issue.Severity, issue.Path, issue.Message)
 
 				// Append the error so we can return it

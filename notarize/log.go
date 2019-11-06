@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/hashicorp/go-cleanhttp"
+	"github.com/hashicorp/go-retryablehttp"
 )
 
 // Log is the structure that is available when downloading the log file
@@ -61,7 +62,12 @@ func ParseLog(r io.Reader) (*Log, error) {
 // If you want more fine-grained control over the download, download it
 // using your own client and use ParseLog.
 func DownloadLog(path string) (*Log, error) {
-	resp, err := cleanhttp.DefaultClient().Get(path)
+	// Build our HTTP client
+	client := retryablehttp.NewClient()
+	client.HTTPClient = cleanhttp.DefaultClient()
+
+	// Get it!
+	resp, err := client.Get(path)
 	if err != nil {
 		return nil, err
 	}

@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.1
 	github.com/hashicorp/go-hclog v0.9.3-0.20191025211905-234833755cb2
 	github.com/hashicorp/go-multierror v1.0.0
+	github.com/hashicorp/go-retryablehttp v0.6.3
 	github.com/hashicorp/hcl/v2 v2.0.0
 	github.com/sebdah/goldie v1.0.0
 	github.com/stretchr/testify v1.3.0
