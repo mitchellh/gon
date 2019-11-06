@@ -47,7 +47,7 @@ type AppleId struct {
 	Provider string `hcl:"provider,optional"`
 }
 
-// NOtarize are the options for notarizing a pre-built file.
+// Notarize are the options for notarizing a pre-built file.
 type Notarize struct {
 	// Path is the path to the file to notarize. This can be any supported
 	// filetype (dmg, pkg, app, zip).
@@ -66,6 +66,8 @@ type Sign struct {
 	// ApplicationIdentity is the ID or name of the certificate to
 	// use for signing binaries. This is used for all binaries in "source".
 	ApplicationIdentity string `hcl:"application_identity"`
+	// Specify a path to an entitlements file in plist format
+	EntitlementsFile string `hcl:"entitlements_file,optional"`
 }
 
 // Dmg are the options for a dmg file as output.

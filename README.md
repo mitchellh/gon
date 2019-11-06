@@ -215,6 +215,8 @@ Supported configurations:
       flag for the `codesign` binary on macOS. See `man codesign` for detailed
       documentation on accepted values.
 
+    * `entitlements_file` (`string` _optional_) - The full path to a plist format .entitlements file, used for the `--entitlements` argument to `codesign` 
+
   * `dmg` (_optional_) - Settings related to creating a disk image (dmg) as output.
     This will only be created if this is specified. The dmg will also have the
     notarization ticket stapled so that it can be verified offline and
@@ -378,5 +380,3 @@ These are some things I'd love to see but aren't currently implemented.
     - The underlying script we use already supports this.
   * Support adding additional files to the zip, dmg packages
   * Support the creation of '.app' bundles for CLI applications
-  * Support entitlements for codesigning
-
