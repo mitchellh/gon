@@ -64,7 +64,7 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	}
 
 	// Start notarization
-	_, err := notarize.Notarize(ctx, &notarize.Options{
+	info, err := notarize.Notarize(ctx, &notarize.Options{
 		File:       i.Path,
 		BundleId:   bundleId,
 		Username:   opts.Config.AppleId.Username,
@@ -89,6 +89,47 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	}
 	color.New(color.FgGreen).Fprintf(os.Stdout, "    %sFile notarized!\n", opts.Prefix)
 	lock.Unlock()
+
+	// If we have a log file, download it to check for warnings
+	if info != nil && info.LogFileURL != "" {
+		opts.Logger.Info(
+			"downloading log file for notarization",
+			"request_uuid", info.RequestUUID,
+			"url", info.LogFileURL,
+		)
+
+		log, err := notarize.DownloadLog(info.LogFileURL)
+		opts.Logger.Debug("log file downloaded", "log", log, "err", err)
+		if err != nil {
+			opts.Logger.Warn(
+				"error downloading log file, this isn't a fatal error",
+				"err", err,
+			)
+
+			lock.Lock()
+			color.New(color.FgYellow).Fprintf(os.Stdout,
+				"    %sError downloading log file. We will ignore, but any "+
+					"potential warnings are also ignored.\n",
+				opts.Prefix)
+			lock.Unlock()
+		} else if len(log.Issues) > 0 {
+			lock.Lock()
+			col := color.FgRed
+			if i.State.Notarized {
+				col = color.FgYellow
+				color.New(color.Bold, color.FgYellow).Fprintf(os.Stdout,
+					"    %sFile successfully notarized but there were %d warnings.",
+					opts.Prefix, len(log.Issues))
+			}
+
+			for idx, issue := range log.Issues {
+				color.New(col).Fprintf(os.Stdout,
+					"    %sIssue #%d (%s) for path %q: %s\n"+
+						opts.Prefix, idx+1, issue.Severity, issue.Path, issue.Message)
+			}
+			lock.Unlock()
+		}
+	}
 
 	// If we aren't stapling we exit now
 	if !i.Staple {
