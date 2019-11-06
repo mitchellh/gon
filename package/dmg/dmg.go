@@ -1,6 +1,13 @@
 // Package dmg creates a "dmg" disk image. This package is purposely
 // skewed towards the features required for notarization with gon and
 // isn't meant to be a general purpose dmg creation library.
+//
+// This package works by embedding create-dmg[1] into the binary,
+// self-extracting to a temporary directory, and executing the script. This is
+// NOT a pure Go implementation of dmg creation. Please understand the risks
+// associated with this before choosing to use this package.
+//
+// [1]: https://github.com/andreyvit/create-dmg
 package dmg
 
 import (
