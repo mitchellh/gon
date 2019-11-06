@@ -84,10 +84,9 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	lock.Lock()
 	if err != nil {
 		color.New(color.FgRed).Fprintf(os.Stdout, "    %sError notarizing\n", opts.Prefix)
-		lock.Unlock()
-		return err
+	} else {
+		color.New(color.FgGreen).Fprintf(os.Stdout, "    %sFile notarized!\n", opts.Prefix)
 	}
-	color.New(color.FgGreen).Fprintf(os.Stdout, "    %sFile notarized!\n", opts.Prefix)
 	lock.Unlock()
 
 	// If we have a log file, download it to check for warnings
@@ -108,9 +107,9 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 
 			lock.Lock()
 			color.New(color.FgYellow).Fprintf(os.Stdout,
-				"    %sError downloading log file. We will ignore, but any "+
-					"potential warnings are also ignored.\n",
-				opts.Prefix)
+				"    %sError downloading log file. You can download the log file manually at the URL below\n"+
+					"%s%s",
+				opts.Prefix, opts.Prefix, info.LogFileURL)
 			lock.Unlock()
 		} else if len(log.Issues) > 0 {
 			lock.Lock()
@@ -129,6 +128,11 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 			}
 			lock.Unlock()
 		}
+	}
+
+	// If we aren't notarized, then return
+	if err := i.State.NotarizeError; err != nil {
+		return err
 	}
 
 	// If we aren't stapling we exit now
