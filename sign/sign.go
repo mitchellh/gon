@@ -4,6 +4,7 @@ package sign
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"os/exec"
 
@@ -100,7 +101,7 @@ func Sign(ctx context.Context, opts *Options) error {
 	// Execute
 	if err := cmd.Run(); err != nil {
 		logger.Error("error codesigning", "err", err, "output", out.String())
-		return err
+		return fmt.Errorf("error signing:\n\n%s", out.String())
 	}
 
 	logger.Info("codesigning complete", "output", out.String())
