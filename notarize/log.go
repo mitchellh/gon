@@ -6,6 +6,7 @@ import (
 	"io"
 
 	"github.com/hashicorp/go-cleanhttp"
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-retryablehttp"
 )
 
@@ -65,6 +66,7 @@ func DownloadLog(path string) (*Log, error) {
 	// Build our HTTP client
 	client := retryablehttp.NewClient()
 	client.HTTPClient = cleanhttp.DefaultClient()
+	client.Logger = hclog.NewNullLogger()
 
 	// Get it!
 	resp, err := client.Get(path)
