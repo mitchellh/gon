@@ -1,4 +1,4 @@
-VERSION := 0.2.0
+VERSION := 0.2.1
 
 # Note that I'd love to use goreleaser for this but they don't quite
 # have the hooks yet to be able to merge in gon support. Ideally they'd
