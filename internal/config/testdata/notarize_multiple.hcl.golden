@@ -15,11 +15,11 @@
   }
  },
  Sign: (*config.Sign)(<nil>),
- AppleId: (config.AppleId) {
+ AppleId: (*config.AppleId)({
   Username: (string) (len=21) "mitchellh@example.com",
   Password: (string) (len=5) "hello",
   Provider: (string) ""
- },
+ }),
  Zip: (*config.Zip)(<nil>),
  Dmg: (*config.Dmg)(<nil>)
 })

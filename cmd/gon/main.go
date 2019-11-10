@@ -140,6 +140,46 @@ func realMain() int {
 		}
 	}
 
+	// If not specified in the configuration, we initialize a new struct that we'll
+	// load with values from the environment.
+	if cfg.AppleId == nil {
+		cfg.AppleId = &config.AppleId{}
+	}
+
+	if cfg.AppleId.Username == "" {
+		appleIdUsername, ok := os.LookupEnv("AC_USERNAME")
+
+		if ok {
+			cfg.AppleId.Username = appleIdUsername
+		} else {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No apple_id username provided\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"An Apple ID username must be specified in the `apple_id` block or\n"+
+					"it must exist in the environment as AC_USERNAME,\n"+
+					"otherwise we won't be able to authenticate with Apple to notarize.\n")
+			return 1
+		}
+	}
+
+	if cfg.AppleId.Password == "" {
+		_, ok := os.LookupEnv("AC_PASSWORD")
+
+		if ok {
+			cfg.AppleId.Password = "@env:AC_PASSWORD"
+		} else {
+			color.New(color.Bold, color.FgRed).Fprintf(os.Stdout, "❗️ No apple_id password provided\n")
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"An Apple ID password (or lookup directive) must be specified in the\n"+
+					"`apple_id` block or it must exist in the environment as AC_PASSWORD,\n"+
+					"otherwise we won't be able to authenticate with Apple to notarize.\n")
+			return 1
+		}
+	}
+
+	if cfg.AppleId.Provider == "" {
+		cfg.AppleId.Provider = os.Getenv("AC_PROVIDER")
+	}
+
 	// If we're in source mode, then sign & package as configured
 	if len(cfg.Source) > 0 {
 		if cfg.Sign != nil {

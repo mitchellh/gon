@@ -8,11 +8,7 @@
   ApplicationIdentity: (string) (len=3) "foo",
   EntitlementsFile: (string) ""
  }),
- AppleId: (*config.AppleId)({
-  Username: (string) (len=21) "mitchellh@example.com",
-  Password: (string) (len=5) "hello",
-  Provider: (string) ""
- }),
+ AppleId: (*config.AppleId)(<nil>),
  Zip: (*config.Zip)(<nil>),
  Dmg: (*config.Dmg)(<nil>)
 })
