@@ -160,6 +160,29 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 		return err
 	}
 
+	// Do final validation using spctl
+	lock.Lock()
+	color.New().Fprintf(os.Stdout, "    %sVerifying notarization status...\n", opts.Prefix)
+	lock.Unlock()
+	err = notarize.Verify(ctx, &notarize.VerifyOptions{
+		File:   i.Path,
+		Logger: opts.Logger.Named("notarize"),
+	})
+	if err != nil {
+		// Store our error
+		i.State.NotarizeError = err
+
+		// Message to the user and return
+		lock.Lock()
+		color.New(color.FgRed).Fprintf(os.Stdout,
+			"    %sNotarization verification failed. See the error message for more details.\n",
+			opts.Prefix,
+		)
+		lock.Unlock()
+
+		return err
+	}
+
 	// Save our state
 	i.State.Notarized = true
 	lock.Lock()
