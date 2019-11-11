@@ -197,16 +197,19 @@ Supported configurations:
   * `apple_id` - Settings related to the Apple ID to use for notarization.
 
     * `username` (`string`) - The Apple ID username, typically an email address.
+      This will default to the `AC_USERNAME` environment variable if not set.
 
     * `password` (`string`) - The password for the associated Apple ID. This can be
       specified directly or using `@keychain:<name>` or `@env:<name>` to avoid
       putting the plaintext password directly in a configuration file. The `@keychain:<name>`
       syntax will load the password from the macOS Keychain with the given name.
       The `@env:<name>` syntax will load the password from the named environmental
-      variable.
+      variable. If this value isn't set, we'll attempt to use the `AC_PASSWORD`
+      environment variable as a default.
 
     * `provider` (`string` _optional_) - The App Store Connect provider when using
-      multiple teams within App Store Connect.
+      multiple teams within App Store Connect. If this isn't set, we'll attempt
+      to read the `AC_PROVIDER` environment variable as a default.
 
   * `sign` - Settings related to signing files.
 
@@ -215,7 +218,7 @@ Supported configurations:
       flag for the `codesign` binary on macOS. See `man codesign` for detailed
       documentation on accepted values.
 
-    * `entitlements_file` (`string` _optional_) - The full path to a plist format .entitlements file, used for the `--entitlements` argument to `codesign` 
+    * `entitlements_file` (`string` _optional_) - The full path to a plist format .entitlements file, used for the `--entitlements` argument to `codesign`
 
   * `dmg` (_optional_) - Settings related to creating a disk image (dmg) as output.
     This will only be created if this is specified. The dmg will also have the
