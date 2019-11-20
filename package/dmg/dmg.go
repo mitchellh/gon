@@ -55,6 +55,9 @@ type Options struct {
 	// BaseCmd is the base command for executing the codesign binary. This is
 	// used for tests to overwrite where the codesign binary is.
 	BaseCmd *exec.Cmd
+
+	// ExtraArgs are verbatim options passed to the create-dmg command
+	ExtraArgs string
 }
 
 // Dmg creates a dmg archive for notarization using the options given.
@@ -104,6 +107,9 @@ func Dmg(ctx context.Context, opts *Options) error {
 		defer os.RemoveAll(td)
 		root = td
 	}
+
+	// Add ExtraArgs
+	args = append(args, opts.ExtraArgs)
 
 	// Add the final arguments and set it on cmd
 	cmd.Args = append(args, opts.OutputPath, root)

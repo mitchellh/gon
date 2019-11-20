@@ -80,6 +80,9 @@ type Dmg struct {
 	// Volume name is the name of the volume that shows up in the title
 	// and sidebar after opening it.
 	VolumeName string `hcl:"volume_name"`
+
+	// ExtraArgs are verbatim options passed to create-dmg
+	ExtraArgs string `hcl:"extra_args,optional"`
 }
 
 // Zip are the options for a zip file as output.

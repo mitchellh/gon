@@ -219,6 +219,7 @@ func realMain() int {
 				Files:      cfg.Source,
 				OutputPath: cfg.Dmg.OutputPath,
 				VolumeName: cfg.Dmg.VolumeName,
+				ExtraArgs:  cfg.Dmg.ExtraArgs,
 				Logger:     logger.Named("dmg"),
 			})
 			if err != nil {
