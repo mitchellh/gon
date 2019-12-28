@@ -362,6 +362,46 @@ I do not currently know how to script the approvals, so the recommendation
 on build machines is to run `gon` manually once. If anyone finds a way to
 automate this please open an issue, let me know, and I'll update this README.
 
+## Usage with GoReleaser
+
+[GoReleaser](https://goreleaser.com) is a popular full featured release
+automation tool for Go-based projects. Gon can be used with GoReleaser to
+augment the signing step to notarize your binaries as part of a GoReleaser
+pipeline.
+
+Here is an example GoReleaser configuration to sign your binaries:
+
+```yaml
+builds:
+- binary: foo
+  id: foo
+  goos:
+  - linux
+  - windows
+  goarch:
+  - amd64
+# notice that we need a separated build for the macos binary only:
+- binary: foo
+  id: foo-macos
+  goos:
+  - darwin
+  goarch:
+  - amd64
+signs:
+  - signature: "${artifact}.dmg"
+    ids:
+    - foo-macos # here we filter the macos only build id
+    # you'll need to have gon on PATH
+    cmd: gon
+    # you can follow the gon docs to properly create the gon.hcl config file:
+    # https://github.com/mitchellh/gon
+    args:
+    - gon.hcl
+    artifacts: all
+```
+
+To learn more, see the [GoReleaser documentation](https://goreleaser.com/customization/#Signing).
+
 ## Go Library
 
 [![Godoc](https://godoc.org/github.com/mitchellh/gon?status.svg)](https://godoc.org/github.com/mitchellh/gon)
