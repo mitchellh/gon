@@ -31,6 +31,7 @@ gon helps you automate the process of notarization.
   - [Using within Automation](#using-within-automation)
     - [Machine-Readable Output](#machine-readable-output)
     - [Prompts](#prompts)
+- [Usage with GoReleaser](#usage-with-goreleaser)
 - [Go Library](#go-library)
 - [Roadmap](#roadmap)
 
