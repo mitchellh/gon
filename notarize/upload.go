@@ -43,9 +43,18 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 		"--primary-bundle-id", opts.BundleId,
 		"-u", opts.Username,
 		"-p", opts.Password,
+	}
+
+	if opts.Provider != "" {
+		cmd.Args = append(cmd.Args,
+			"--asc-provider", opts.Provider,
+		)
+	}
+
+	cmd.Args = append(cmd.Args,
 		"-f", opts.File,
 		"--output-format", "xml",
-	}
+	)
 
 	// We store all output in out for logging and in case there is an error
 	var out, combined bytes.Buffer
