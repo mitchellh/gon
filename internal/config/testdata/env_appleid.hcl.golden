@@ -10,5 +10,6 @@
  }),
  AppleId: (*config.AppleId)(<nil>),
  Zip: (*config.Zip)(<nil>),
- Dmg: (*config.Dmg)(<nil>)
+ Dmg: (*config.Dmg)(<nil>),
+ IgnorePathIssues: (*string)(<nil>)
 })

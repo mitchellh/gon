@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"regexp"
 	"sync"
 
 	"github.com/fatih/color"
@@ -128,29 +129,7 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 			)
 		}
 
-		// If we have any issues then it is a failed notarization. Notarization
-		// can "succeed" with warnings, but when you attempt to use/open a file
-		// Gatekeeper rejects it. So we currently reject any and all issues.
-		if len(log.Issues) > 0 {
-			var err error
-
-			lock.Lock()
-			color.New(color.FgRed).Fprintf(os.Stdout,
-				"    %s%d issues during notarization:\n",
-				opts.Prefix, len(log.Issues))
-			for idx, issue := range log.Issues {
-				color.New(color.FgRed).Fprintf(os.Stdout,
-					"    %sIssue #%d (%s) for path %q: %s\n",
-					opts.Prefix, idx+1, issue.Severity, issue.Path, issue.Message)
-
-				// Append the error so we can return it
-				err = multierror.Append(err, fmt.Errorf(
-					"%s for path %q: %s",
-					issue.Severity, issue.Path, issue.Message,
-				))
-			}
-			lock.Unlock()
-
+		if err := handleIssues(opts, log); err != nil {
 			return err
 		}
 	}
@@ -194,6 +173,50 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	}
 	color.New(color.FgGreen).Fprintf(os.Stdout, "    %sFile notarized and stapled!\n", opts.Prefix)
 	lock.Unlock()
+
+	return nil
+}
+
+func handleIssues(opts *processOptions, log *notarize.Log) error {
+	// If we have any issues then it is a failed notarization. Notarization
+	// can "succeed" with warnings, but when you attempt to use/open a file
+	// Gatekeeper rejects it. So we currently reject any and all issues.
+
+	lock := opts.OutputLock
+	if len(log.Issues) > 0 {
+		var err multierror.Error
+
+		lock.Lock()
+		color.New(color.FgRed).Fprintf(os.Stdout,
+			"    %s%d issues during notarization:\n",
+			opts.Prefix, len(log.Issues))
+		for idx, issue := range log.Issues {
+			color.New(color.FgRed).Fprintf(os.Stdout,
+				"    %sIssue #%d (%s) for path %q: %s\n",
+				opts.Prefix, idx+1, issue.Severity, issue.Path, issue.Message)
+
+			if opts.Config.IgnorePathIssues != nil {
+				matched, err := regexp.MatchString(*opts.Config.IgnorePathIssues, issue.Path)
+				if err != nil {
+					return err // poorly formatted regex?
+				}
+				if matched {
+					continue
+				}
+			}
+			// Append the error so we can return it
+			err = *multierror.Append(&err, fmt.Errorf(
+				"%s for path %q: %s",
+				issue.Severity, issue.Path, issue.Message,
+			))
+		}
+		lock.Unlock()
+
+		if len(err.WrappedErrors()) == 0 {
+			return nil
+		}
+		return &err
+	}
 
 	return nil
 }

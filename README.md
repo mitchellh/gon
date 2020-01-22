@@ -27,6 +27,7 @@ gon helps you automate the process of notarization.
   - [Prerequisite: Acquiring a Developer ID Certificate](#prerequisite-acquiring-a-developer-id-certificate)
   - [Configuration File](#configuration-file)
   - [Notarization-Only Configuration](#notarization-only-configuration)
+  - [Handling Notarization Issues](#handling-notarization-issues)
   - [Processing Time](#processing-time)
   - [Using within Automation](#using-within-automation)
     - [Machine-Readable Output](#machine-readable-output)
@@ -309,6 +310,38 @@ apple_id {
 
 Note you may specify multiple `notarize` blocks to notarize multipel files
 concurrently.
+
+### Handling Notarization Issues
+
+After notarization, Apple sends a log containing what actions it performed. The
+log may contain a list of "issues", which may or may not be fatal. In some
+circumstances, a successful notarization can still produce a bundle that does
+not pass Gatekeeper and will fail to install. By default, `gon` will treat any
+issues reported by Apple as fatal due to the likelihood of an non-installable
+bundle.
+
+If you know that some issues reported by Apple that are non-fatal, such as an
+executable included in your bundle that is not essential for the install, you
+can treat these issues as non-fatal and `gon` will not fail. The
+`ignorable_path_issues` configuration option allows you to supply a regular
+expression that matches the `path` attached to the issues. The `path` reported
+by Apple normally has the format `<bundle> <file path>` so your regular
+expression should take this into account. Multiple paths should be composed
+into a single regular expression by broad matches or `|`. Supplying `".*"` will
+treat all issues as non-fatal (caveat emptor!).
+
+```hcl
+notarize {
+  path = "/path/to/terraform.pkg"
+...
+}
+
+apple_id {
+  ...
+}
+
+ignorable_path_issues = "^terraform.pkg Contents/Payload/usr/lib/inconsequential/boop$"
+```
 
 ### Processing Time
 

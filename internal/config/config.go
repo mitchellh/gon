@@ -28,6 +28,13 @@ type Config struct {
 	// Dmg, if present, creates a dmg file to package the signed `Source` files
 	// into. Dmg files support stapling so this allows offline usage.
 	Dmg *Dmg `hcl:"dmg,block"`
+
+	// IgnorePathIssues, if present, will allow a notarization to succeed in the
+	// presence of issues reported by Apple. Supply a regular expression to match
+	// against the path(s) for which issues should be considered non-fatal, or
+	// ".*" to match all issues.
+	// Note that paths reported by Apple take the format: "<bundle> <file>".
+	IgnorePathIssues *string `hcl:"ignorable_path_issues,optional"`
 }
 
 // AppleId are the authentication settings for Apple systems.
