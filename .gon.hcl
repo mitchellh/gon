@@ -1,4 +1,4 @@
-source = ["./dist/gon"]
+source = ["./dist/macos_darwin_amd64/gon"]
 bundle_id = "com.mitchellh.gon"
 
 apple_id {
@@ -11,10 +11,10 @@ sign {
 }
 
 zip {
-  output_path = "./dist/gon.zip"
+  output_path = "./dist/gon_macos.zip"
 }
 
 dmg {
-  output_path = "./dist/gon.dmg"
+  output_path = "./dist/gon_macos.dmg"
   volume_name = "gon"
 }

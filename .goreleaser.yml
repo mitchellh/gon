@@ -1,0 +1,55 @@
+env:
+  - GO111MODULE=on
+
+before:
+  hooks:
+    - go mod download
+
+builds:
+  - id: macos
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - darwin
+    goarch:
+      - amd64
+    dir: ./cmd/gon/
+
+archives:
+  - id: macos-zip
+    format: zip
+    name_template: "{{ .ProjectName }}_{{ .Os }}"
+    replacements:
+      darwin: macos
+      amd64: x86_64
+
+signs:
+  - signature: "${artifact}_macos.dmg"
+    ids:
+      - macos
+    cmd: gon
+    args:
+      - .gon.hcl
+    artifacts: all
+
+snapshot:
+  name_template: "{{ .Tag }}-next"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+    - 'README'
+
+release:
+  ids:
+    - none
+  extra_files:
+    - glob: ./dist/gon_macos.dmg
+    - glob: ./dist/gon_macos.zip
+
+brews:
+  - github:
+      owner: mitchellh
+      name: homebrew-gon
+    description: "Sign, notarize, and package macOS CLI tools and applications written in any language."
