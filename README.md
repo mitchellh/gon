@@ -416,6 +416,12 @@ package, notarization, and stapling steps. This lets you integrate this
 functionality into any tooling easily vs. having an opinionated `gon`-CLI
 experience.
 
+## Troubleshooting
+
+### "We are unable to create an authentication session. (-22016)"
+
+You likely have Apple 2FA enabled. You'll need to [generate an application password](https://appleid.apple.com/account/manage) and use that instead of your Apple ID password.
+
 ## Roadmap
 
 These are some things I'd love to see but aren't currently implemented.
