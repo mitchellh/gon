@@ -1,16 +1,10 @@
-VERSION := 0.2.2
-
-# Note that I'd love to use goreleaser for this but they don't quite
-# have the hooks yet to be able to merge in gon support. Ideally they'd
-# just integrate natively in some way.
-build: clean
-	mkdir -p dist
-	GOOS=darwin GOARCH=amd64 go build -ldflags "-X main.version=$(VERSION)" -o ./dist/gon ./cmd/gon
-.PHONY: build
-
-# release will package the distribution packages, sign, and notarize
-release: build
-	./dist/gon .gon.hcl
+# release will package the distribution packages, sign, and notarize. It
+# will then upload the release to GitHub and publish the Homebrew tap.
+#
+# AFTER THIS YOU MUST MANUALLY DELETE the checksums.txt file since it is
+# incomplete and we don't need checksums since our artifacts are signed.
+release:
+	goreleaser --rm-dist
 .PHONY: release
 
 clean:
