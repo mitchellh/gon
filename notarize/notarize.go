@@ -87,61 +87,51 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	}
 	status.Submitted(uuid)
 
-	// Begin polling the info. The first thing we wait for is for the status
-	// _to even exist_. While we get an error requesting info with an error
-	// code of 1519 (UUID not found), then we are stuck in a queue. Sometimes
-	// this queue is hours long. We just have to wait.
+	// Begin polling the info.
+	delay := 10 * time.Second
 	result := &Info{RequestUUID: uuid}
 	for {
-		time.Sleep(10 * time.Second)
-		_, err := info(ctx, result.RequestUUID, opts)
-		if err == nil {
-			break
-		}
+		// Sleep, we just do a constant poll every n seconds. I haven't yet
+		// found any rate limits to the service so this seems okay.
+		time.Sleep(delay)
 
-		// If we got error code 1519 that means that the UUID was not found.
-		// This means we're in a queue.
-		if e, ok := err.(Errors); ok && e.ContainsCode(1519) {
-			continue
-		}
-
-		// A real error, just return that
-		return result, err
-	}
-
-	// Now that the UUID result has been found, we poll more quickly
-	// waiting for the analysis to complete. This usually happens within
-	// minutes.
-	for {
 		// Update the info. It is possible for this to return a nil info
-		// and we dont' ever want to set result to nil so we have a check.
+		// and we don't ever want to set result to nil so we have a check.
 		newResult, err := info(ctx, result.RequestUUID, opts)
 		if newResult != nil {
 			result = newResult
 		}
 
 		if err != nil {
+			// The first thing we wait for is for the status _to even exist_.
+			// While we get an error requesting info with an error code of 1519
+			// (UUID not found), then we are stuck in a queue. Sometimes this
+			// queue is hours long. We just have to wait.
+			if e, ok := err.(Errors); ok && e.ContainsCode(1519) {
+				continue
+			}
 			// This code is the network became unavailable error. If this
 			// happens then we just log and retry.
 			if e, ok := err.(Errors); ok && e.ContainsCode(-19000) {
 				logger.Warn("error that network became unavailable, will retry")
-				goto RETRY
+				continue
 			}
 
+			// A real error, just return that
 			return result, err
 		}
 
-		status.Status(*result)
+		// Now that the UUID result has been found, we poll more quickly
+		// waiting for the analysis to complete. This usually happens within
+		// minutes.
+		delay = 5 * time.Second
 
+		status.Status(*result)
 		// If we reached a terminal state then exit
 		if result.Status == "success" || result.Status == "invalid" {
 			break
 		}
 
-	RETRY:
-		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
-		// found any rate limits to the service so this seems okay.
-		time.Sleep(5 * time.Second)
 	}
 
 	// If we're in an invalid status then return an error
