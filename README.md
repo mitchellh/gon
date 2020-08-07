@@ -93,6 +93,8 @@ Before using `gon`, you must acquire a Developer ID Certificate. To do
 this, you can either do it via the web or via Xcode locally on a Mac. Using
 Xcode is easier if you already have it installed.
 
+Also, before you can get a Developer ID Certificate, Apple requires you to [enroll in the Apple Developer Program](https://developer.apple.com/programs/enroll/). The membership fee is $99/year.
+
 Via the web:
 
   1. Sign into [developer.apple.com](https://developer.apple.com) with valid
