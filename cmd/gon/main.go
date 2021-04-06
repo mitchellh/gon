@@ -184,6 +184,7 @@ func realMain() int {
 				Files:        cfg.Source,
 				Identity:     cfg.Sign.ApplicationIdentity,
 				Entitlements: cfg.Sign.EntitlementsFile,
+				Deep:         cfg.Sign.Deep,
 				Logger:       logger.Named("sign"),
 			})
 			if err != nil {
@@ -232,6 +233,7 @@ func realMain() int {
 			err = sign.Sign(context.Background(), &sign.Options{
 				Files:    []string{cfg.Dmg.OutputPath},
 				Identity: cfg.Sign.ApplicationIdentity,
+				Deep:     cfg.Sign.Deep,
 				Logger:   logger.Named("dmg"),
 			})
 			if err != nil {
