@@ -226,6 +226,11 @@ Supported configurations:
 
     * `entitlements_file` (`string` _optional_) - The full path to a plist format .entitlements file, used for the `--entitlements` argument to `codesign`
 
+    * `requirements` (`string` _optional_) - The full requirements string, used for the `-r=` argument to `codesign`.
+
+      See [Code Designated Requirement](https://developer.apple.com/library/archive/technotes/tn2206/_index.html#//apple_ref/doc/uid/DTS40007919-CH1-TNTAG6).
+      The requirements are wrapped with `"` before being passed, `designated => anchor trusted` will be passed to codesign as `-r="designated => anchor trusted"`.
+
   * `dmg` (_optional_) - Settings related to creating a disk image (dmg) as output.
     This will only be created if this is specified. The dmg will also have the
     notarization ticket stapled so that it can be verified offline and

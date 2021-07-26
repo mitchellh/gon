@@ -38,6 +38,10 @@ type Options struct {
 	// BaseCmd is the base command for executing the codesign binary. This is
 	// used for tests to overwrite where the codesign binary is.
 	BaseCmd *exec.Cmd
+
+	// Requirements is used to pass requirements to the codesign binary.
+	// See https://developer.apple.com/library/archive/technotes/tn2206/_index.html#//apple_ref/doc/uid/DTS40007919-CH1-TNTAG6
+	Requirements string
 }
 
 // Sign signs one or more files returning an error if any.
@@ -74,6 +78,12 @@ func Sign(ctx context.Context, opts *Options) error {
 
 	if len(opts.Entitlements) > 0 {
 		cmd.Args = append(cmd.Args, "--entitlements", opts.Entitlements)
+	}
+
+	if len(opts.Requirements) > 0 {
+		//requirementsString := fmt.Sprintf("-r=\"%s\"", opts.Requirements)
+		requirementsString := fmt.Sprintf("-r=%s", opts.Requirements)
+		cmd.Args = append(cmd.Args, requirementsString)
 	}
 
 	// Append the files that we want to sign
