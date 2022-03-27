@@ -33,6 +33,7 @@ gon helps you automate the process of notarization.
     - [Prompts](#prompts)
 - [Usage with GoReleaser](#usage-with-goreleaser)
 - [Go Library](#go-library)
+- [Troubleshooting)(#troubleshooting)
 - [Roadmap](#roadmap)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -212,6 +213,9 @@ Supported configurations:
       The `@env:<name>` syntax will load the password from the named environmental
       variable. If this value isn't set, we'll attempt to use the `AC_PASSWORD`
       environment variable as a default.
+      
+      **NOTE**: If you have 2FA enabled, the password must be an application password, not
+      your normal apple id password. See [Troubleshooting](#troubleshooting) for details.
 
     * `provider` (`string` _optional_) - The App Store Connect provider when using
       multiple teams within App Store Connect. If this isn't set, we'll attempt
