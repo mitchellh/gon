@@ -33,7 +33,7 @@ gon helps you automate the process of notarization.
     - [Prompts](#prompts)
 - [Usage with GoReleaser](#usage-with-goreleaser)
 - [Go Library](#go-library)
-- [Troubleshooting)(#troubleshooting)
+- [Troubleshooting](#troubleshooting)
 - [Roadmap](#roadmap)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
