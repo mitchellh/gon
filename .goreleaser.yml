@@ -29,7 +29,7 @@ checksum:
 signs:
   - signature: "${artifact}_macos.dmg"
     ids:
-      - macos
+      - macos-zip
     cmd: gon
     args:
       - .gon.hcl
