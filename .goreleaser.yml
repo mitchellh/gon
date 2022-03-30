@@ -52,4 +52,4 @@ brews:
   - tap:
       owner: mitchellh
       name: homebrew-gon
-    description: "Sign, notarize, and package macOS CLI tools and applications written in any language."
+    description: "Sign, notarize, and package macOS CLI applications written in any language."
