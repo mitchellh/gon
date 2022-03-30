@@ -14,8 +14,6 @@ builds:
     goarch:
       - amd64
     dir: ./cmd/gon/
-    hooks:
-      post: gon .gon.hcl
 
 archives:
   - id: macos-zip
@@ -24,6 +22,15 @@ archives:
     replacements:
       darwin: macos
       amd64: x86_64
+
+signs:
+  - signature: "${artifact}_macos.dmg"
+    ids:
+      - macos
+    cmd: gon
+    args:
+      - .gon.hcl
+    artifacts: all
 
 snapshot:
   name_template: "{{ .Tag }}-next"
