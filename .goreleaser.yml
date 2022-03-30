@@ -49,7 +49,7 @@ release:
     - glob: ./dist/gon_macos.zip
 
 brews:
-  - github:
+  - tap:
       owner: mitchellh
       name: homebrew-gon
     description: "Sign, notarize, and package macOS CLI tools and applications written in any language."
