@@ -23,6 +23,9 @@ archives:
       darwin: macos
       amd64: x86_64
 
+checksum:
+  disable: true
+
 signs:
   - signature: "${artifact}_macos.dmg"
     ids:
