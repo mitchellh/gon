@@ -17,14 +17,6 @@ builds:
     hooks:
       post: gon .gon.hcl
 
-archives:
-  - id: macos-zip
-    format: zip
-    name_template: "{{ .ProjectName }}_{{ .Os }}"
-    replacements:
-      darwin: macos
-      amd64: x86_64
-
 snapshot:
   name_template: "{{ .Tag }}-next"
 
