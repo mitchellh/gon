@@ -60,7 +60,6 @@ The example below runs `gon` against itself to generate a zip and dmg.
 
 The easiest way to install `gon` is via [Homebrew](https://brew.sh):
 
-    $ brew tap mitchellh/gon
     $ brew install mitchellh/gon/gon
 
 You may also download the appropriate release for your platform
