@@ -81,8 +81,7 @@ func Sign(ctx context.Context, opts *Options) error {
 	}
 
 	if len(opts.Requirements) > 0 {
-		//requirementsString := fmt.Sprintf("-r=\"%s\"", opts.Requirements)
-		requirementsString := fmt.Sprintf("-r=%s", opts.Requirements)
+		requirementsString := fmt.Sprintf("-r=%q", opts.Requirements)
 		cmd.Args = append(cmd.Args, requirementsString)
 	}
 
