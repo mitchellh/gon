@@ -38,22 +38,21 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 
 	cmd.Args = []string{
 		filepath.Base(cmd.Path),
-		"altool",
-		"--notarize-app",
-		"--primary-bundle-id", opts.BundleId,
-		"-u", opts.Username,
+		"notarytool",
+		"submit",
+		"--apple-id", opts.Username,
 		"-p", opts.Password,
 	}
 
 	if opts.Provider != "" {
 		cmd.Args = append(cmd.Args,
-			"--asc-provider", opts.Provider,
+			"--team-id", opts.Provider,
 		)
 	}
 
 	cmd.Args = append(cmd.Args,
-		"-f", opts.File,
-		"--output-format", "xml",
+		opts.File,
+		"--output-format", "normal",
 	)
 
 	// We store all output in out for logging and in case there is an error
