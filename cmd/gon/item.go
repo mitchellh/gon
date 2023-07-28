@@ -67,14 +67,13 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 
 	// Start notarization
 	info, err := notarize.Notarize(ctx, &notarize.Options{
-		File:       i.Path,
-		BundleId:   bundleId,
-		Username:   opts.Config.AppleId.Username,
-		Password:   opts.Config.AppleId.Password,
-		Provider:   opts.Config.AppleId.Provider,
-		Logger:     opts.Logger.Named("notarize"),
-		Status:     &statusHuman{Prefix: opts.Prefix, Lock: lock},
-		UploadLock: opts.UploadLock,
+		File:        i.Path,
+		DeveloperId: opts.Config.AppleId.Username,
+		Password:    opts.Config.AppleId.Password,
+		Provider:    opts.Config.AppleId.Provider,
+		Logger:      opts.Logger.Named("notarize"),
+		Status:      &statusHuman{Prefix: opts.Prefix, Lock: lock},
+		UploadLock:  opts.UploadLock,
 	})
 
 	// Save the error state. We don't save the notarization result yet

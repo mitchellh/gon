@@ -16,11 +16,8 @@ type Options struct {
 	// File is the file to notarize. This must be in zip, dmg, or pkg format.
 	File string
 
-	// BundleId is the bundle ID for the package. Ex. "com.example.myapp"
-	BundleId string
-
-	// Username is your Apple Connect username.
-	Username string
+	// DeveloperId is your Apple Developer Apple ID.
+	DeveloperId string
 
 	// Password is your Apple Connect password. This must be specified.
 	// This also supports `@keychain:<value>` and `@env:<value>` formats to
