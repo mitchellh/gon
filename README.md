@@ -69,6 +69,10 @@ These are all signed and notarized to run out of the box on macOS 10.15+.
 You can also compile from source using Go 1.13 or later using standard
 `go build`. Please ensure that Go modules are enabled.
 
+Apple requires proprietary binaries to interact with the Apple developer
+services used to notarize software, so gon will only work on MacOS machines
+with XCode tools installed, and you will need an Apple developer account.
+
 ## Usage
 
 `gon` requires a configuration file that can be specified as a file path
