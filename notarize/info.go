@@ -7,7 +7,6 @@ import (
 	"io"
 	"os/exec"
 	"path/filepath"
-	"time"
 
 	"github.com/hashicorp/go-hclog"
 	"howett.net/plist"
@@ -23,30 +22,40 @@ type Info struct {
 	// RequestUUID is the UUID provided by Apple after submitting the
 	// notarization request. This can be used to look up notarization information
 	// using the Apple tooling.
-	RequestUUID string `plist:"RequestUUID"`
+	RequestUUID string `plist:"id"`
 
 	// Date is the date and time of submission
-	Date time.Time `plist:"Date"`
+	Date string `plist:"createdDate"`
 
-	// Hash is the encoded hash value for the submitted file. This is provided
-	// by Apple. This is not decoded into a richer type like hash/sha256 because
-	// it doesn't seem to be guaranteed by Apple anywhere what format this is in.
-	Hash string `plist:"Hash"`
-
-	// LogFileURL is a URL to a log file for more details.
-	LogFileURL string `plist:"LogFileURL"`
+	// Name is th file uploaded for submission.
+	Name string `plist:"name"`
 
 	// Status the status of the notarization.
 	//
 	// StatusMessage is a human-friendly message associated with a status.
-	Status        string `plist:"Status"`
-	StatusMessage string `plist:"Status Message"`
+	Status        string `plist:"status"`
+	StatusMessage string `plist:"message"`
 }
 
 // infoResult is the structure of the plist emitted directly from
 // --notarization-info
 type infoResult struct {
-	Info *Info `plist:"notarization-info"`
+	// RequestUUID is the UUID provided by Apple after submitting the
+	// notarization request. This can be used to look up notarization information
+	// using the Apple tooling.
+	RequestUUID string `plist:"id"`
+
+	// Date is the date and time of submission
+	Date string `plist:"createdDate"`
+
+	// Name is th file uploaded for submission.
+	Name string `plist:"name"`
+
+	// Status the status of the notarization.
+	//
+	// StatusMessage is a human-friendly message associated with a status.
+	Status        string `plist:"status"`
+	StatusMessage string `plist:"message"`
 
 	// Errors is the list of errors that occurred while uploading
 	Errors Errors `plist:"product-errors"`
@@ -56,6 +65,7 @@ type infoResult struct {
 // the updated information.
 func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 	logger := opts.Logger
+	var info Info
 	if logger == nil {
 		logger = hclog.NewNullLogger()
 	}
@@ -83,7 +93,7 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 		uuid,
 		"--apple-id", opts.DeveloperId,
 		"--password", opts.Password,
-		"--output-format", "normal",
+		"--output-format", "plist",
 	}
 
 	if opts.Provider != "" {
@@ -132,6 +142,13 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 		return nil, fmt.Errorf("error checking on notarization status:\n\n%s", combined.String())
 	}
 
-	logger.Info("notarization info", "uuid", uuid, "info", result.Info)
-	return result.Info, nil
+	info = Info{RequestUUID: result.RequestUUID,
+		Date:          result.Date,
+		Name:          result.Name,
+		Status:        result.Status,
+		StatusMessage: result.StatusMessage,
+	}
+
+	logger.Info("notarization info", "uuid", uuid, "info", info)
+	return &info, nil
 }

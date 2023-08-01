@@ -131,7 +131,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		status.Status(*result)
 
 		// If we reached a terminal state then exit
-		if result.Status == "success" || result.Status == "invalid" {
+		if result.Status == "Accepted" || result.Status == "Invalid" {
 			break
 		}
 
@@ -143,8 +143,8 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 
 	// If we're in an invalid status then return an error
 	err = nil
-	if result.Status == "invalid" {
-		err = fmt.Errorf("package is invalid. To learn more download the logs at the URL: %s", result.LogFileURL)
+	if result.Status == "Invalid" {
+		err = fmt.Errorf("package is invalid.")
 	}
 
 	return result, err

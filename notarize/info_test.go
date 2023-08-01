@@ -23,8 +23,6 @@ func TestInfo_success(t *testing.T) {
 	require := require.New(t)
 	require.NoError(err)
 	require.Equal(info.RequestUUID, "edc8e846-d6ce-444d-9eef-499aa444da1c")
-	require.Equal(info.Hash, "644d0af906ae26c87037cd6e9073382d5b0461b39e7f23c7bb69a35debacedd4")
-	require.Equal(info.LogFileURL, "https://osxapps-ssl.itunes.apple.com/itunes-assets/Enigma123/v4/29/f2/81/29f28128-e2be-158a-f421-1e19692dd935/developer_log.json?accessKey=1572864491_3132212434837665280_4XLMw7lZxMfKdHhgnlPkueVue9woI2MjQ6VEc8R0cxJrL9GGcTQSiE0C9Cu5o6o%2B3JtYGSqGWdvc3mJHbS0NBRZkHT%2BbwbdMGPT8poYk7TTkfHUIcW5aBz0aFO7RB6mSWVuZWOFT0dZ4VS%2Bep2LUP2KTDtDwiGQbTULu9VgZ1oY%3D")
 	require.Equal(info.Status, "success")
 	require.Equal(info.StatusMessage, "Package Approved")
 }

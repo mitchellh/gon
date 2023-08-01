@@ -42,6 +42,7 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 		"submit", opts.File,
 		"--apple-id", opts.DeveloperId,
 		"--password", opts.Password,
+		"--team-id", opts.Provider,
 	}
 
 	if opts.Provider != "" {
@@ -51,7 +52,7 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 	}
 
 	cmd.Args = append(cmd.Args,
-		"--output-format", "xml",
+		"--output-format", "plist",
 	)
 
 	// We store all output in out for logging and in case there is an error
@@ -95,24 +96,22 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 	}
 
 	// We should have a request UUID set at this point since we checked for errors
-	if result.Upload == nil || result.Upload.RequestUUID == "" {
+	if result.RequestUUID == "" {
 		return "", fmt.Errorf(
 			"notarization appeared to succeed, but we failed at parsing " +
 				"the request UUID. Please enable logging, try again, and report " +
 				"this as a bug.")
 	}
 
-	logger.Info("notarization request submitted", "request_id", result.Upload.RequestUUID)
-	return result.Upload.RequestUUID, nil
+	logger.Info("notarization request submitted", "request_id", result.RequestUUID)
+	return result.RequestUUID, nil
 
 }
 
 // uploadResult is the plist structure when the upload succeeds
 type uploadResult struct {
 	// Upload is non-nil if there is a successful upload
-	Upload *struct {
-		RequestUUID string `plist:"RequestUUID"`
-	} `plist:"notarization-upload"`
+	RequestUUID string `plist:"id"`
 
 	// Errors is the list of errors that occurred while uploading
 	Errors Errors `plist:"product-errors"`
