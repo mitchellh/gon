@@ -31,41 +31,16 @@ type Info struct {
 	Name string `plist:"name"`
 
 	// Status the status of the notarization.
-	//
+	Status string `plist:"status"`
+
 	// StatusMessage is a human-friendly message associated with a status.
-	Status        string `plist:"status"`
 	StatusMessage string `plist:"message"`
-}
-
-// infoResult is the structure of the plist emitted directly from
-// --notarization-info
-type infoResult struct {
-	// RequestUUID is the UUID provided by Apple after submitting the
-	// notarization request. This can be used to look up notarization information
-	// using the Apple tooling.
-	RequestUUID string `plist:"id"`
-
-	// Date is the date and time of submission
-	Date string `plist:"createdDate"`
-
-	// Name is th file uploaded for submission.
-	Name string `plist:"name"`
-
-	// Status the status of the notarization.
-	//
-	// StatusMessage is a human-friendly message associated with a status.
-	Status        string `plist:"status"`
-	StatusMessage string `plist:"message"`
-
-	// Errors is the list of errors that occurred while uploading
-	Errors Errors `plist:"product-errors"`
 }
 
 // info requests the information about a notarization and returns
 // the updated information.
 func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 	logger := opts.Logger
-	var info Info
 	if logger == nil {
 		logger = hclog.NewNullLogger()
 	}
@@ -125,16 +100,11 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 
 	// If we have any output, try to decode that since even in the case of
 	// an error it will output some information.
-	var result infoResult
+	var result Info
 	if out.Len() > 0 {
 		if _, perr := plist.Unmarshal(out.Bytes(), &result); perr != nil {
 			return nil, fmt.Errorf("failed to decode notarization submission output: %w", perr)
 		}
-	}
-
-	// If there are errors in the result, then show that error
-	if len(result.Errors) > 0 {
-		return nil, result.Errors
 	}
 
 	// Now we check the error for actually running the process
@@ -142,13 +112,6 @@ func info(ctx context.Context, uuid string, opts *Options) (*Info, error) {
 		return nil, fmt.Errorf("error checking on notarization status:\n\n%s", combined.String())
 	}
 
-	info = Info{RequestUUID: result.RequestUUID,
-		Date:          result.Date,
-		Name:          result.Name,
-		Status:        result.Status,
-		StatusMessage: result.StatusMessage,
-	}
-
-	logger.Info("notarization info", "uuid", uuid, "info", info)
-	return &info, nil
+	logger.Info("notarization info", "uuid", uuid, "info", result)
+	return &result, nil
 }

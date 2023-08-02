@@ -85,11 +85,6 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 		}
 	}
 
-	// If there are errors in the result, then show that error
-	if len(result.Errors) > 0 {
-		return "", result.Errors
-	}
-
 	// Now we check the error for actually running the process
 	if err != nil {
 		return "", fmt.Errorf("error submitting for notarization:\n\n%s", combined.String())
@@ -112,7 +107,4 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 type uploadResult struct {
 	// Upload is non-nil if there is a successful upload
 	RequestUUID string `plist:"id"`
-
-	// Errors is the list of errors that occurred while uploading
-	Errors Errors `plist:"product-errors"`
 }
