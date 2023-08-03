@@ -64,7 +64,7 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	}
 
 	// Start notarization
-	_, err := notarize.Notarize(ctx, &notarize.Options{
+	_, _, err := notarize.Notarize(ctx, &notarize.Options{
 		File:        i.Path,
 		DeveloperId: opts.Config.AppleId.Username,
 		Password:    opts.Config.AppleId.Password,
@@ -75,7 +75,7 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	})
 
 	// Save the error state. We don't save the notarization result yet
-	// because we don't know it for sure until we download the log file.
+	// because we don't know it for sure until we retrieve the log information.
 	i.State.NotarizeError = err
 
 	// If we had an error, we mention immediate we have an error.

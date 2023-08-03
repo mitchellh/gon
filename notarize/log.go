@@ -85,7 +85,7 @@ func log(ctx context.Context, uuid string, opts *Options) (*Log, error) {
 	cmd.Stderr = &combined
 
 	// Log what we're going to execute
-	logger.Info("requesting notarization info",
+	logger.Info("requesting notarization log",
 		"uuid", uuid,
 		"command_path", cmd.Path,
 		"command_args", cmd.Args,
