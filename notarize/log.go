@@ -71,12 +71,7 @@ func log(ctx context.Context, uuid string, opts *Options) (*Log, error) {
 		uuid,
 		"--apple-id", opts.DeveloperId,
 		"--password", opts.Password,
-	}
-
-	if opts.Provider != "" {
-		cmd.Args = append(cmd.Args,
-			"--team-id", opts.Provider,
-		)
+		"--team-id", opts.Provider,
 	}
 
 	// We store all output in out for logging and in case there is an error

@@ -43,17 +43,8 @@ func upload(ctx context.Context, opts *Options) (string, error) {
 		"--apple-id", opts.DeveloperId,
 		"--password", opts.Password,
 		"--team-id", opts.Provider,
-	}
-
-	if opts.Provider != "" {
-		cmd.Args = append(cmd.Args,
-			"--team-id", opts.Provider,
-		)
-	}
-
-	cmd.Args = append(cmd.Args,
 		"--output-format", "plist",
-	)
+	}
 
 	// We store all output in out for logging and in case there is an error
 	var out, combined bytes.Buffer
