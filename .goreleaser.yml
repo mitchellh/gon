@@ -42,7 +42,7 @@ changelog:
   sort: asc
   filters:
     exclude:
-    - 'README'
+      - "README"
 
 release:
   ids:
@@ -52,7 +52,11 @@ release:
     - glob: ./dist/gon_macos.zip
 
 brews:
-  - tap:
-      owner: mitchellh
-      name: homebrew-gon
+  - # Name template of the recipe
+    name: gon
+    folder: Formula
+    tap:
+      owner: Bearer
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
     description: "Sign, notarize, and package macOS CLI applications written in any language."
