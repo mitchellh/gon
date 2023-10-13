@@ -18,7 +18,8 @@ type statusHuman struct {
 	Prefix string
 	Lock   *sync.Mutex
 
-	lastStatus string
+	lastInfoStatus string
+	lastLogStatus  string
 }
 
 func (s *statusHuman) Submitting() {
@@ -37,13 +38,23 @@ func (s *statusHuman) Submitted(uuid string) {
 		os.Stdout, "    %sWaiting for results from Apple. This can take minutes to hours.\n", s.Prefix)
 }
 
-func (s *statusHuman) Status(info notarize.Info) {
+func (s *statusHuman) InfoStatus(info notarize.Info) {
 	s.Lock.Lock()
 	defer s.Lock.Unlock()
 
-	if info.Status != s.lastStatus {
-		s.lastStatus = info.Status
-		color.New().Fprintf(os.Stdout, "    %sStatus: %s\n", s.Prefix, info.Status)
+	if info.Status != s.lastInfoStatus {
+		s.lastInfoStatus = info.Status
+		color.New().Fprintf(os.Stdout, "    %sInfoStatus: %s\n", s.Prefix, info.Status)
+	}
+}
+
+func (s *statusHuman) LogStatus(log notarize.Log) {
+	s.Lock.Lock()
+	defer s.Lock.Unlock()
+
+	if log.Status != s.lastLogStatus {
+		s.lastLogStatus = log.Status
+		color.New().Fprintf(os.Stdout, "    %sLogStatus: %s\n", s.Prefix, log.Status)
 	}
 }
 

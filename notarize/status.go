@@ -12,11 +12,14 @@ type Status interface {
 	// The arguments give you access to the requestUUID to query more information.
 	Submitted(requestUUID string)
 
-	// Status is called as the status of the submitted package changes.
+	// InfoStatus is called as the status of the submitted package changes.
 	// The info argument contains additional information about the status.
 	// Note that some fields in the info argument may not be populated, please
 	// refer to the docs.
-	Status(Info)
+	InfoStatus(Info)
+
+	// LogStatus is called as the status of the submitted package changes.
+	LogStatus(Log)
 }
 
 // noopStatus implements Status and does nothing.
@@ -24,7 +27,8 @@ type noopStatus struct{}
 
 func (noopStatus) Submitting()      {}
 func (noopStatus) Submitted(string) {}
-func (noopStatus) Status(Info)      {}
+func (noopStatus) InfoStatus(Info)  {}
+func (noopStatus) LogStatus(Log)    {}
 
 // Assert that we always implement it
 var _ Status = noopStatus{}

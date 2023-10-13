@@ -16,11 +16,8 @@ type Options struct {
 	// File is the file to notarize. This must be in zip, dmg, or pkg format.
 	File string
 
-	// BundleId is the bundle ID for the package. Ex. "com.example.myapp"
-	BundleId string
-
-	// Username is your Apple Connect username.
-	Username string
+	// DeveloperId is your Apple Developer Apple ID.
+	DeveloperId string
 
 	// Password is your Apple Connect password. This must be specified.
 	// This also supports `@keychain:<value>` and `@env:<value>` formats to
@@ -47,7 +44,7 @@ type Options struct {
 
 	// BaseCmd is the base command for executing app submission. This is
 	// used for tests to overwrite where the codesign binary is. If this isn't
-	// specified then we use `xcrun altool` as the base.
+	// specified then we use `xcrun notarytool` as the base.
 	BaseCmd *exec.Cmd
 }
 
@@ -61,7 +58,7 @@ type Options struct {
 //
 // If error is nil, then Info is guaranteed to be non-nil.
 // If error is not nil, notarization failed and Info _may_ be non-nil.
-func Notarize(ctx context.Context, opts *Options) (*Info, error) {
+func Notarize(ctx context.Context, opts *Options) (*Info, *Log, error) {
 	logger := opts.Logger
 	if logger == nil {
 		logger = hclog.NewNullLogger()
@@ -83,7 +80,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	uuid, err := upload(ctx, opts)
 	lock.Unlock()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	status.Submitted(uuid)
 
@@ -91,10 +88,10 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	// _to even exist_. While we get an error requesting info with an error
 	// code of 1519 (UUID not found), then we are stuck in a queue. Sometimes
 	// this queue is hours long. We just have to wait.
-	result := &Info{RequestUUID: uuid}
+	infoResult := &Info{RequestUUID: uuid}
 	for {
 		time.Sleep(10 * time.Second)
-		_, err := info(ctx, result.RequestUUID, opts)
+		_, err := info(ctx, infoResult.RequestUUID, opts)
 		if err == nil {
 			break
 		}
@@ -106,7 +103,7 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 		}
 
 		// A real error, just return that
-		return result, err
+		return infoResult, nil, err
 	}
 
 	// Now that the UUID result has been found, we poll more quickly
@@ -115,9 +112,9 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 	for {
 		// Update the info. It is possible for this to return a nil info
 		// and we dont' ever want to set result to nil so we have a check.
-		newResult, err := info(ctx, result.RequestUUID, opts)
-		if newResult != nil {
-			result = newResult
+		newInfoResult, err := info(ctx, infoResult.RequestUUID, opts)
+		if newInfoResult != nil {
+			infoResult = newInfoResult
 		}
 
 		if err != nil {
@@ -125,20 +122,53 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 			// happens then we just log and retry.
 			if e, ok := err.(Errors); ok && e.ContainsCode(-19000) {
 				logger.Warn("error that network became unavailable, will retry")
-				goto RETRY
+				goto RETRYINFO
 			}
 
-			return result, err
+			return infoResult, nil, err
 		}
 
-		status.Status(*result)
+		status.InfoStatus(*infoResult)
 
 		// If we reached a terminal state then exit
-		if result.Status == "success" || result.Status == "invalid" {
+		if infoResult.Status == "Accepted" || infoResult.Status == "Invalid" {
 			break
 		}
 
-	RETRY:
+	RETRYINFO:
+		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
+		// found any rate limits to the service so this seems okay.
+		time.Sleep(5 * time.Second)
+	}
+
+	logResult := &Log{JobId: uuid}
+	for {
+		// Update the log. It is possible for this to return a nil log
+		// and we dont' ever want to set result to nil so we have a check.
+		newLogResult, err := log(ctx, logResult.JobId, opts)
+		if newLogResult != nil {
+			logResult = newLogResult
+		}
+
+		if err != nil {
+			// This code is the network became unavailable error. If this
+			// happens then we just log and retry.
+			if e, ok := err.(Errors); ok && e.ContainsCode(-19000) {
+				logger.Warn("error that network became unavailable, will retry")
+				goto RETRYLOG
+			}
+
+			return infoResult, logResult, err
+		}
+
+		status.LogStatus(*logResult)
+
+		// If we reached a terminal state then exit
+		if logResult.Status == "Accepted" || logResult.Status == "Invalid" {
+			break
+		}
+
+	RETRYLOG:
 		// Sleep, we just do a constant poll every 5 seconds. I haven't yet
 		// found any rate limits to the service so this seems okay.
 		time.Sleep(5 * time.Second)
@@ -146,9 +176,9 @@ func Notarize(ctx context.Context, opts *Options) (*Info, error) {
 
 	// If we're in an invalid status then return an error
 	err = nil
-	if result.Status == "invalid" {
-		err = fmt.Errorf("package is invalid. To learn more download the logs at the URL: %s", result.LogFileURL)
+	if logResult.Status == "Invalid" && infoResult.Status == "Invalid" {
+		err = fmt.Errorf("package is invalid.")
 	}
 
-	return result, err
+	return infoResult, logResult, err
 }

@@ -2,13 +2,11 @@ package main
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"sync"
 
 	"github.com/fatih/color"
 	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/go-multierror"
 
 	"github.com/mitchellh/gon/internal/config"
 	"github.com/mitchellh/gon/notarize"
@@ -66,19 +64,18 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 	}
 
 	// Start notarization
-	info, err := notarize.Notarize(ctx, &notarize.Options{
-		File:       i.Path,
-		BundleId:   bundleId,
-		Username:   opts.Config.AppleId.Username,
-		Password:   opts.Config.AppleId.Password,
-		Provider:   opts.Config.AppleId.Provider,
-		Logger:     opts.Logger.Named("notarize"),
-		Status:     &statusHuman{Prefix: opts.Prefix, Lock: lock},
-		UploadLock: opts.UploadLock,
+	_, _, err := notarize.Notarize(ctx, &notarize.Options{
+		File:        i.Path,
+		DeveloperId: opts.Config.AppleId.Username,
+		Password:    opts.Config.AppleId.Password,
+		Provider:    opts.Config.AppleId.Provider,
+		Logger:      opts.Logger.Named("notarize"),
+		Status:      &statusHuman{Prefix: opts.Prefix, Lock: lock},
+		UploadLock:  opts.UploadLock,
 	})
 
 	// Save the error state. We don't save the notarization result yet
-	// because we don't know it for sure until we download the log file.
+	// because we don't know it for sure until we retrieve the log information.
 	i.State.NotarizeError = err
 
 	// If we had an error, we mention immediate we have an error.
@@ -86,73 +83,6 @@ func (i *item) notarize(ctx context.Context, opts *processOptions) error {
 		lock.Lock()
 		color.New(color.FgRed).Fprintf(os.Stdout, "    %sError notarizing\n", opts.Prefix)
 		lock.Unlock()
-	}
-
-	// If we have a log file, download it. We do this whether we have an error
-	// or not because the log file can contain more details about the error.
-	if info != nil && info.LogFileURL != "" {
-		opts.Logger.Info(
-			"downloading log file for notarization",
-			"request_uuid", info.RequestUUID,
-			"url", info.LogFileURL,
-		)
-
-		log, logerr := notarize.DownloadLog(info.LogFileURL)
-		opts.Logger.Debug("log file downloaded", "log", log, "err", logerr)
-		if logerr != nil {
-			opts.Logger.Warn(
-				"error downloading log file, this isn't a fatal error",
-				"err", err,
-			)
-
-			// If we already failed notarization, just return that error
-			if err := i.State.NotarizeError; err != nil {
-				return err
-			}
-
-			// If it appears we succeeded notification, we make a new error.
-			// We can't say notarization is successful without downloading this
-			// file because warnings will cause notarization to not work
-			// when loaded.
-			lock.Lock()
-			color.New(color.FgRed).Fprintf(os.Stdout,
-				"    %sError downloading log file to verify notarization.\n",
-				opts.Prefix,
-			)
-			lock.Unlock()
-
-			return fmt.Errorf(
-				"Error downloading log file to verify notarization success: %s\n\n"+
-					"You can download the log file manually at: %s",
-				logerr, info.LogFileURL,
-			)
-		}
-
-		// If we have any issues then it is a failed notarization. Notarization
-		// can "succeed" with warnings, but when you attempt to use/open a file
-		// Gatekeeper rejects it. So we currently reject any and all issues.
-		if len(log.Issues) > 0 {
-			var err error
-
-			lock.Lock()
-			color.New(color.FgRed).Fprintf(os.Stdout,
-				"    %s%d issues during notarization:\n",
-				opts.Prefix, len(log.Issues))
-			for idx, issue := range log.Issues {
-				color.New(color.FgRed).Fprintf(os.Stdout,
-					"    %sIssue #%d (%s) for path %q: %s\n",
-					opts.Prefix, idx+1, issue.Severity, issue.Path, issue.Message)
-
-				// Append the error so we can return it
-				err = multierror.Append(err, fmt.Errorf(
-					"%s for path %q: %s",
-					issue.Severity, issue.Path, issue.Message,
-				))
-			}
-			lock.Unlock()
-
-			return err
-		}
 	}
 
 	// If we aren't notarized, then return
