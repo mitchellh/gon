@@ -54,6 +54,7 @@ jobs:
         name: Run GoReleaser
         with:
           version: latest
+          args: release --clean
         env:
           GOOS: darwin
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
