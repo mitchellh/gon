@@ -1,3 +1,9 @@
+**Archived:** I unfortunately no longer make active use of this project
+and haven't properly maintained it since early 2022. I welcome anyone to
+fork and take over this project. 
+
+-----------------------------------------------------
+
 # gon - CLI and Go Library for macOS Notarization
 
 gon is a simple, no-frills tool for
