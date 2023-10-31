@@ -11,56 +11,75 @@ import (
 )
 
 func init() {
-	childCommands["info-success"] = testCmdInfoSuccess
+	childCommands["info-accepted"] = testCmdInfoAcceptedSubmission
+	childCommands["info-invalid"] = testCmdInfoInvalidSubmission
 }
 
-func TestInfo_success(t *testing.T) {
+func TestInfo_accepted(t *testing.T) {
 	info, err := info(context.Background(), "foo", &Options{
 		Logger:  hclog.L(),
-		BaseCmd: childCmd(t, "info-success"),
+		BaseCmd: childCmd(t, "info-accepted"),
 	})
 
 	require := require.New(t)
 	require.NoError(err)
-	require.Equal(info.RequestUUID, "edc8e846-d6ce-444d-9eef-499aa444da1c")
-	require.Equal(info.Hash, "644d0af906ae26c87037cd6e9073382d5b0461b39e7f23c7bb69a35debacedd4")
-	require.Equal(info.LogFileURL, "https://osxapps-ssl.itunes.apple.com/itunes-assets/Enigma123/v4/29/f2/81/29f28128-e2be-158a-f421-1e19692dd935/developer_log.json?accessKey=1572864491_3132212434837665280_4XLMw7lZxMfKdHhgnlPkueVue9woI2MjQ6VEc8R0cxJrL9GGcTQSiE0C9Cu5o6o%2B3JtYGSqGWdvc3mJHbS0NBRZkHT%2BbwbdMGPT8poYk7TTkfHUIcW5aBz0aFO7RB6mSWVuZWOFT0dZ4VS%2Bep2LUP2KTDtDwiGQbTULu9VgZ1oY%3D")
-	require.Equal(info.Status, "success")
-	require.Equal(info.StatusMessage, "Package Approved")
+	require.Equal(info.RequestUUID, "32684f68-d63e-49ba-9234-25eeec84b369")
+	require.Equal(info.Status, "Accepted")
+	require.Equal(info.StatusMessage, "Successfully received submission info")
 }
 
-// testCmdInfoSuccess mimicks a successful submission.
-func testCmdInfoSuccess() int {
+func TestInfo_invalid(t *testing.T) {
+	info, err := info(context.Background(), "foo", &Options{
+		Logger:  hclog.L(),
+		BaseCmd: childCmd(t, "info-invalid"),
+	})
+
+	require := require.New(t)
+	require.NoError(err)
+	require.Equal(info.RequestUUID, "cfd69166-8e2f-1397-8636-ec06f98e3597")
+	require.Equal(info.Status, "Invalid")
+}
+
+// testCmdInfoAcceptedSubmission mimicks an accepted submission.
+func testCmdInfoAcceptedSubmission() int {
 	fmt.Println(strings.TrimSpace(`
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <plist version="1.0">
 <dict>
-	<key>notarization-info</key>
-	<dict>
-		<key>Date</key>
-		<date>2019-11-02T02:17:12Z</date>
-		<key>Hash</key>
-		<string>644d0af906ae26c87037cd6e9073382d5b0461b39e7f23c7bb69a35debacedd4</string>
-		<key>LogFileURL</key>
-		<string>https://osxapps-ssl.itunes.apple.com/itunes-assets/Enigma123/v4/29/f2/81/29f28128-e2be-158a-f421-1e19692dd935/developer_log.json?accessKey=1572864491_3132212434837665280_4XLMw7lZxMfKdHhgnlPkueVue9woI2MjQ6VEc8R0cxJrL9GGcTQSiE0C9Cu5o6o%2B3JtYGSqGWdvc3mJHbS0NBRZkHT%2BbwbdMGPT8poYk7TTkfHUIcW5aBz0aFO7RB6mSWVuZWOFT0dZ4VS%2Bep2LUP2KTDtDwiGQbTULu9VgZ1oY%3D</string>
-		<key>RequestUUID</key>
-		<string>edc8e846-d6ce-444d-9eef-499aa444da1c</string>
-		<key>Status</key>
-		<string>success</string>
-		<key>Status Code</key>
-		<integer>0</integer>
-		<key>Status Message</key>
-		<string>Package Approved</string>
-	</dict>
-	<key>os-version</key>
-	<string>10.15.1</string>
-	<key>success-message</key>
-	<string>No errors getting notarization info.</string>
-	<key>tool-path</key>
-	<string>/Applications/Xcode.app/Contents/SharedFrameworks/ContentDeliveryServices.framework/Versions/A/Frameworks/AppStoreService.framework</string>
-	<key>tool-version</key>
-	<string>4.00.1181</string>
+		<key>createdDate</key>
+		<string>2023-08-01T08:22:19.939Z</string>
+		<key>id</key>
+		<string>32684f68-d63e-49ba-9234-25eeec84b369</string>
+		<key>message</key>
+		<string>Successfully received submission info</string>
+		<key>name</key>
+		<string>binary.zip</string>
+		<key>status</key>
+		<string>Accepted</string>
+</dict>
+</plist>
+`))
+	return 0
+}
+
+// testCmdInfoInvalidSubmission mimicks an invalid submission.
+func testCmdInfoInvalidSubmission() int {
+	fmt.Println(strings.TrimSpace(`
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+		<key>createdDate</key>
+		<string>2023-08-01T08:12:11.193Z</string>
+		<key>id</key>
+		<string>cfd69166-8e2f-1397-8636-ec06f98e3597</string>
+		<key>message</key>
+		<string>Successfully received submission info</string>
+		<key>name</key>
+		<string>binary.zip</string>
+		<key>status</key>
+		<string>Invalid</string>
 </dict>
 </plist>
 `))

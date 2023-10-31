@@ -4,6 +4,7 @@ bundle_id = "com.mitchellh.gon"
 apple_id {
   username = "mitchell.hashimoto@gmail.com"
   password = "@env:AC_PASSWORD"
+  provider = "UL304B4VGY"
 }
 
 sign {

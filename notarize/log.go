@@ -1,20 +1,18 @@
 package notarize
 
 import (
+	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"os/exec"
+	"path/filepath"
 
-	"github.com/hashicorp/go-cleanhttp"
 	"github.com/hashicorp/go-hclog"
-	"github.com/hashicorp/go-retryablehttp"
 )
 
-// Log is the structure that is available when downloading the log file
-// that the notarization service creates.
-//
-// This may not be complete with all fields. I only included fields that
-// I saw and even then only the more useful ones.
+// Log Retrieves notarization log for a single completed submission
 type Log struct {
 	JobId           string             `json:"jobId"`
 	Status          string             `json:"status"`
@@ -42,40 +40,77 @@ type LogTicketContent struct {
 	Arch            string `json:"arch"`
 }
 
-// These are the log severities that may exist.
-const (
-	LogSeverityError   = "error"
-	LogSeverityWarning = "warning"
-)
-
-// ParseLog parses a log from the given reader, such as an HTTP response.
-func ParseLog(r io.Reader) (*Log, error) {
-	// Protect against this since it is common with HTTP responses.
-	if r == nil {
-		return nil, fmt.Errorf("nil reader given to ParseLog")
+// log requests the information about a notarization and returns
+// the updated information.
+func log(ctx context.Context, uuid string, opts *Options) (*Log, error) {
+	logger := opts.Logger
+	if logger == nil {
+		logger = hclog.NewNullLogger()
 	}
 
+	// Build our command
+	var cmd exec.Cmd
+	if opts.BaseCmd != nil {
+		cmd = *opts.BaseCmd
+	}
+
+	// We only set the path if it isn't set. This lets the options set the
+	// path to the codesigning binary that we use.
+	if cmd.Path == "" {
+		path, err := exec.LookPath("xcrun")
+		if err != nil {
+			return nil, err
+		}
+		cmd.Path = path
+	}
+
+	cmd.Args = []string{
+		filepath.Base(cmd.Path),
+		"notarytool",
+		"log",
+		uuid,
+		"--apple-id", opts.DeveloperId,
+		"--password", opts.Password,
+		"--team-id", opts.Provider,
+	}
+
+	// We store all output in out for logging and in case there is an error
+	var out, combined bytes.Buffer
+	cmd.Stdout = io.MultiWriter(&out, &combined)
+	cmd.Stderr = &combined
+
+	// Log what we're going to execute
+	logger.Info("requesting notarization log",
+		"uuid", uuid,
+		"command_path", cmd.Path,
+		"command_args", cmd.Args,
+	)
+
+	// Execute
+	err := cmd.Run()
+
+	// Log the result
+	logger.Info("notarization log command finished",
+		"output", out.String(),
+		"err", err,
+	)
+
+	// If we have any output, try to decode that since even in the case of
+	// an error it will output some information.
 	var result Log
-	return &result, json.NewDecoder(r).Decode(&result)
-}
+	// return &result, json.NewDecoder().Decode(&result)
+	if out.Len() > 0 {
+		if derr := json.Unmarshal(out.Bytes(), &result); derr != nil {
+			return nil, fmt.Errorf("failed to decode notarization submission output: %w", derr)
 
-// DownloadLog downloads a log file and parses it using a default HTTP client.
-// If you want more fine-grained control over the download, download it
-// using your own client and use ParseLog.
-func DownloadLog(path string) (*Log, error) {
-	// Build our HTTP client
-	client := retryablehttp.NewClient()
-	client.HTTPClient = cleanhttp.DefaultClient()
-	client.Logger = hclog.NewNullLogger()
+		}
+	}
 
-	// Get it!
-	resp, err := client.Get(path)
+	// Now we check the error for actually running the process
 	if err != nil {
-		return nil, err
-	}
-	if resp.Body != nil {
-		defer resp.Body.Close()
+		return nil, fmt.Errorf("error checking on notarization status:\n\n%s", combined.String())
 	}
 
-	return ParseLog(resp.Body)
+	logger.Info("notarization log", "uuid", uuid, "info", result)
+	return &result, nil
 }
