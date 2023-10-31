@@ -7,7 +7,7 @@
  Sign: (*config.Sign)({
   ApplicationIdentity: (string) (len=3) "foo",
   EntitlementsFile: (string) "",
-  Requirements: (string) ""
+  Requirements: (string) (len=57) "designated => anchor trusted and identifier com.mitchellh"
  }),
  AppleId: (*config.AppleId)({
   Username: (string) (len=21) "mitchellh@example.com",

@@ -6,7 +6,8 @@
  Notarize: ([]config.Notarize) <nil>,
  Sign: (*config.Sign)({
   ApplicationIdentity: (string) (len=3) "foo",
-  EntitlementsFile: (string) (len=29) "/path/to/example.entitlements"
+  EntitlementsFile: (string) (len=29) "/path/to/example.entitlements",
+  Requirements: (string) ""
  }),
  AppleId: (*config.AppleId)({
   Username: (string) (len=21) "mitchellh@example.com",

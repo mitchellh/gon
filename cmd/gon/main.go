@@ -185,6 +185,7 @@ func realMain() int {
 				Identity:     cfg.Sign.ApplicationIdentity,
 				Entitlements: cfg.Sign.EntitlementsFile,
 				Logger:       logger.Named("sign"),
+				Requirements: cfg.Sign.Requirements,
 			})
 			if err != nil {
 				fmt.Fprintf(os.Stdout, color.RedString("❗️ Error signing files:\n\n%s\n", err))
