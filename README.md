@@ -160,6 +160,7 @@ apple_id {
 
 sign {
   application_identity = "Developer ID Application: Mitchell Hashimoto"
+  deep = false
 }
 
 dmg {
@@ -182,7 +183,8 @@ zip {
         "provider":  "UL304B4VGY"
     },
     "sign" :{
-        "application_identity" : "Developer ID Application: Mitchell Hashimoto"
+        "application_identity" : "Developer ID Application: Mitchell Hashimoto",
+        "deep": false
     },
     "dmg" :{
         "output_path":  "terraform.dmg",
@@ -234,6 +236,10 @@ Supported configurations:
       certificate to use to sign applications. This accepts any valid value for the `-s`
       flag for the `codesign` binary on macOS. See `man codesign` for detailed
       documentation on accepted values.
+
+    * `deep` (`bool` _optional_) - If true, the `--deep` flag is used, which will recursively
+    codesign any directory paths (such as an *.app directory, for example.) Has no effect on
+    individual file paths.
 
     * `entitlements_file` (`string` _optional_) - The full path to a plist format .entitlements file, used for the `--entitlements` argument to `codesign`
 
